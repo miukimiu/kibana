@@ -78,28 +78,25 @@ export const ProfileQueryEditor = memo(() => {
         <EuiForm>
           <EuiFlexGroup direction="row" gutterSize="s">
             <EuiFlexItem>
-              <EuiFormRow
-                label={i18n.translate('xpack.searchProfiler.formIndexLabel', {
+              <EuiFieldText
+                prepend={i18n.translate('xpack.searchProfiler.formIndexLabel', {
                   defaultMessage: 'Index',
                 })}
-              >
-                <EuiFieldText
-                  disabled={!licenseEnabled}
-                  inputRef={ref => {
-                    if (ref) {
-                      indexInputRef.current = ref;
-                      ref.value = DEFAULT_INDEX_VALUE;
-                    }
-                  }}
-                />
-              </EuiFormRow>
+                disabled={!licenseEnabled}
+                inputRef={ref => {
+                  if (ref) {
+                    indexInputRef.current = ref;
+                    ref.value = DEFAULT_INDEX_VALUE;
+                  }
+                }}
+              />
             </EuiFlexItem>
           </EuiFlexGroup>
         </EuiForm>
       </EuiFlexItem>
 
       {/* Editor */}
-      <EuiFlexItem grow={10}>
+      <EuiFlexItem>
         <Editor
           onEditorReady={onEditorReady}
           licenseEnabled={licenseEnabled}
@@ -114,11 +111,13 @@ export const ProfileQueryEditor = memo(() => {
           gutterSize="none"
           direction="row"
         >
-          <EuiFlexItem grow={5}>
-            <EuiSpacer size="s" />
-          </EuiFlexItem>
-          <EuiFlexItem grow={5}>
-            <EuiButton fill disabled={!licenseEnabled} onClick={() => handleProfileClick()}>
+          <EuiFlexItem>
+            <EuiButton
+              fill
+              size="s"
+              disabled={!licenseEnabled}
+              onClick={() => handleProfileClick()}
+            >
               <EuiText>
                 {i18n.translate('xpack.searchProfiler.formProfileButtonLabel', {
                   defaultMessage: 'Profile',
