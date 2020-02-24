@@ -36,6 +36,7 @@ import {
 import { loadingSaga, savingSaga } from './persistence';
 import { metaDataReducer, MetaDataState, syncBreadcrumbSaga } from './meta_data';
 import { fillWorkspaceSaga } from './workspace';
+import { filterWorkspaceSaga } from './filter';
 
 export interface GraphState {
   fields: FieldsState;
@@ -86,6 +87,7 @@ function registerSagas(sagaMiddleware: SagaMiddleware<object>, deps: GraphStoreD
   sagaMiddleware.run(syncBreadcrumbSaga(deps));
   sagaMiddleware.run(syncTemplatesSaga(deps));
   sagaMiddleware.run(fillWorkspaceSaga(deps));
+  sagaMiddleware.run(filterWorkspaceSaga(deps));
 }
 
 export const createGraphStore = (deps: GraphStoreDependencies) => {

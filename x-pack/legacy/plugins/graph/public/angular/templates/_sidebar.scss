@@ -1,7 +1,7 @@
 .gphSidebar {
   position: absolute;
-  right: $euiSizeS;
-  top: $euiSizeS;
+  left: $euiSizeS;
+  bottom: $euiSizeS;
   width: $euiSizeXL * 10;
   z-index: $euiZLevel1;
   background-color: $euiColorEmptyShade;

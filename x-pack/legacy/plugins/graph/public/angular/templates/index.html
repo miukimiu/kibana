@@ -63,6 +63,9 @@
     core-start="coreStart"
     storage="storage"
     no-index-patterns="noIndexPatterns"
+    client-workspace="workspace"
+    selected-nodes="workspace.selectedNodes"
+    notify-angular="notifyAngular"
   ></div>
 
   <div class="gphGraph__container" id="GraphSvgContainer" ng-if="workspaceInitialized || savedWorkspace.id">
@@ -73,6 +76,9 @@
       edges="workspace.edges"
       edge-click="clickEdge"
       node-click="nodeClick"
+      max-doc-count="workspace.maxDocCount"
+      client-workspace="workspace"
+      notify-angular="notifyAngular"
     ></div>
 
     <div id="sidebar" class="gphSidebar" ng-if="workspace !== null">

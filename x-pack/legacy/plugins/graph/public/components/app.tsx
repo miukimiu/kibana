@@ -19,6 +19,8 @@ import { GuidancePanel } from './guidance_panel';
 import { GraphTitle } from './graph_title';
 
 import { KibanaContextProvider } from '../../../../../../src/plugins/kibana_react/public';
+import { AddDataPanel } from './add_data/add_data_panel';
+import { filterWorkspace } from '../state_management/filter';
 
 export interface GraphAppProps extends SearchBarProps {
   coreStart: CoreStart;
@@ -32,6 +34,7 @@ export interface GraphAppProps extends SearchBarProps {
 
 export function GraphApp(props: GraphAppProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [filter, setFilter] = useState<any>(undefined);
   const {
     coreStart,
     pluginDataStart,
@@ -55,10 +58,17 @@ export function GraphApp(props: GraphAppProps) {
           <>
             {props.isInitialized && <GraphTitle />}
             <div className="gphGraph__bar">
-              <SearchBar {...searchBarProps} />
+              <SearchBar
+                {...searchBarProps}
+                onQuerySubmit={newQuery => {
+                  reduxStore.dispatch(filterWorkspace({ filter: newQuery }));
+                  setFilter(newQuery);
+                }}
+              />
               <EuiSpacer size="s" />
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
+            {props.isInitialized && <AddDataPanel {...searchBarProps} filter={filter} />}
             {!props.isInitialized && (
               <GuidancePanel
                 noIndexPatterns={noIndexPatterns}

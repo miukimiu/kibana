@@ -191,6 +191,10 @@ module.exports = (function() {
 
     //======== Selection functions ========
 
+    this.setFilter = function(filter) {
+      self.filter = filter;
+    };
+
     this.selectAll = function() {
       self.selectedNodes = [];
       for (const n in self.nodes) {
@@ -315,6 +319,10 @@ module.exports = (function() {
 
     this.getAllSelectedNodes = function() {
       return this.returnUnpackedGroupeds(self.selectedNodes);
+    };
+
+    this.getAllTopNodes = function() {
+      return this.returnUnpackedGroupeds(self.nodes);
     };
 
     this.colorSelected = function(colorNum) {
@@ -517,7 +525,10 @@ module.exports = (function() {
         edge.topSrc = topSrc;
         edge.topTarget = topTarget;
 
-        if (topSrc != topTarget) {
+        if (
+          topSrc != topTarget &&
+          (!self.minShownDocCount || edge.doc_count >= self.minShownDocCount)
+        ) {
           effectiveEdges.push({
             source: topSrc,
             target: topTarget,
@@ -683,16 +694,16 @@ module.exports = (function() {
 
     // A "simple search" operation that requires no parameters from the client.
     // Performs numHops hops pulling in field-specific number of terms each time
-    this.simpleSearch = function(searchTerm, fieldsChoice, numHops) {
+    this.simpleSearch = function(searchTerm, fieldsChoice, numHops, callback) {
       const qs = {
         query_string: {
           query: searchTerm,
         },
       };
-      return this.search(qs, fieldsChoice, numHops);
+      return this.search(qs, fieldsChoice, numHops, callback);
     };
 
-    this.search = function(query, fieldsChoice, numHops) {
+    this.search = function(query, fieldsChoice, numHops, callback) {
       if (!fieldsChoice) {
         fieldsChoice = self.options.vertex_fields;
       }
@@ -745,13 +756,26 @@ module.exports = (function() {
         }
       }
 
+      query = {
+        bool: {
+          must: [query],
+        },
+      };
       if (nots.length > 0) {
-        query = {
-          bool: {
-            must: [query],
-            must_not: nots,
-          },
-        };
+        query.bool.must_not = nots;
+      }
+      // TODO: should these go into filter instead? Should it be configurable?
+      if (self.filter) {
+        if (self.filter.startsWith('{')) {
+          const filterQuery = JSON.parse(self.filter);
+          query.bool.must.push(filterQuery);
+        } else {
+          query.bool.must.push({
+            query_string: {
+              query: self.filter,
+            },
+          });
+        }
       }
 
       const request = {
@@ -760,7 +784,7 @@ module.exports = (function() {
         connections: rootStep.connections,
         vertices: rootStep.vertices,
       };
-      self.callElasticsearch(request);
+      self.callElasticsearch(request, callback);
     };
 
     this.buildControls = function() {
@@ -871,8 +895,7 @@ module.exports = (function() {
         const existingEdge = this.edgesMap[edge.id];
         if (existingEdge) {
           existingEdge.weight = Math.max(existingEdge.weight, edge.weight);
-          //TODO update width too?
-          existingEdge.doc_count = Math.max(existingEdge.doc_count, edge.doc_count);
+          existingEdge.doc_count = edge.doc_count;
           continue;
         }
         const newEdge = {
@@ -919,6 +942,39 @@ module.exports = (function() {
     };
 
     //======= Expand functions to request new additions to the graph
+
+    this.getInterestingNodes = function(searchTerm) {
+      return new Promise(resolve => {
+        if (searchTerm) {
+          const numHops = 2;
+          if (searchTerm.startsWith('{')) {
+            const query = JSON.parse(searchTerm);
+            // Is a regular query DSL query
+            self.search(query, undefined, numHops, resolve);
+            return;
+          }
+          self.simpleSearch(searchTerm, undefined, numHops, resolve);
+          return;
+        }
+        let startNodes = self.getAllSelectedNodes();
+        if (startNodes.length == 0) {
+          startNodes = self.nodes;
+        }
+        if (startNodes.length > 0) {
+          const clone = startNodes.slice();
+          self.expand(clone, { returnInstead: true, callback: resolve });
+        } else {
+          self.simpleSearch('*', undefined, 2, resolve);
+        }
+      });
+    };
+
+    this.addNodes = function(nodes) {
+      return new Promise(resolve => {
+        self.mergeGraph({ nodes });
+        self.fillInGraph(resolve);
+      });
+    };
 
     this.expandSelecteds = function(targetOptions = {}) {
       let startNodes = self.getAllSelectedNodes();
@@ -1035,6 +1091,18 @@ module.exports = (function() {
           vertices: secondaryVertices,
         },
       };
+      if (self.filter) {
+        if (self.filter.startsWith('{')) {
+          const filterQuery = JSON.parse(self.filter);
+          request.connections.query = filterQuery;
+        } else {
+          request.connections.query = {
+            query_string: {
+              query: self.filter,
+            },
+          };
+        }
+      }
       self.lastRequest = JSON.stringify(request, null, '\t');
       graphExplorer(self.options.indexName, request, function(data) {
         self.lastResponse = JSON.stringify(data, null, '\t');
@@ -1074,6 +1142,13 @@ module.exports = (function() {
           });
         }
 
+        if (targetOptions.returnInstead) {
+          targetOptions.callback({
+            nodes: data.vertices,
+            edges: edges,
+          });
+          return;
+        }
         // Add the new nodes and edges into the existing workspace's graph
         self.mergeGraph({
           nodes: data.vertices,
@@ -1174,25 +1249,9 @@ module.exports = (function() {
      * @param maxNewEdges Max number of new edges added. Avoid adding too many new edges
      * at once into the graph otherwise disorientating
      */
-    this.fillInGraph = function(maxNewEdges = 10) {
-      let nodesForLinking = self.getSelectedOrAllTopNodes();
-
-      const maxNumVerticesSearchable = 100;
-
-      // Server limitation - we can only search for connections between max 100 vertices at a time.
-      if (nodesForLinking.length > maxNumVerticesSearchable) {
-        //Make a selection of random nodes from the array. Shift the random choices
-        // to the front of the array.
-        for (let i = 0; i < maxNumVerticesSearchable; i++) {
-          const oldNode = nodesForLinking[i];
-          const randomIndex = Math.floor(Math.random() * (nodesForLinking.length - i)) + i;
-          //Swap the node positions of the randomly selected node and i
-          nodesForLinking[i] = nodesForLinking[randomIndex];
-          nodesForLinking[randomIndex] = oldNode;
-        }
-        // Trim to our random selection
-        nodesForLinking = nodesForLinking.slice(0, maxNumVerticesSearchable - 1);
-      }
+    this.fillInGraph = function(callback) {
+      const nodesForLinking = self.getAllTopNodes();
+      if (nodesForLinking.length === 0) return;
 
       // Create our query/aggregation request using the selected nodes.
       // Filters are named after the index of the node in the nodesForLinking
@@ -1224,8 +1283,27 @@ module.exports = (function() {
         },
       };
 
+      if (self.filter) {
+        if (self.filter.startsWith('{')) {
+          searchReq.query.bool.filter = [JSON.parse(self.filter)];
+        } else {
+          searchReq.query.bool.filter = [
+            {
+              query_string: {
+                query: self.filter,
+              },
+            },
+          ];
+        }
+      }
+
       // Search for connections between the selected nodes.
       searcher(self.options.indexName, searchReq, function(data) {
+        self.edges = [];
+        self.edgesMap = {};
+        self.nodes.forEach(node => {
+          node.doc_count = 0;
+        });
         const numDocsMatched = data.hits.total;
         const buckets = data.aggregations.matrix.buckets;
         const vertices = nodesForLinking.map(function(existingNode) {
@@ -1237,8 +1315,9 @@ module.exports = (function() {
           };
         });
 
-        let connections = [];
+        const connections = [];
         let maxEdgeWeight = 0;
+        let maxDocCount = 0;
         // Turn matrix array of results into a map
         const keyedBuckets = {};
         buckets.forEach(function(bucket) {
@@ -1266,15 +1345,13 @@ module.exports = (function() {
               // prioritize links purely on volume of intersecting docs
               bucket.weight = bucket.doc_count;
             }
+            maxDocCount = Math.max(maxDocCount, bucket.doc_count);
             maxEdgeWeight = Math.max(maxEdgeWeight, bucket.weight);
           }
         });
         const backFilledMinLineSize = 2;
         const backFilledMaxLineSize = 5;
         buckets.forEach(function(bucket) {
-          if (bucket.doc_count < parseInt(self.options.exploreControls.minDocCount)) {
-            return;
-          }
           const ids = bucket.key.split('|');
           if (ids.length == 2) {
             // Bucket represents an edge
@@ -1283,8 +1360,7 @@ module.exports = (function() {
             const edgeId = self.makeEdgeId(srcNode.id, targetNode.id);
             const existingEdge = self.edgesMap[edgeId];
             if (existingEdge) {
-              // Tweak the doc_count score having just looked it up.
-              existingEdge.doc_count = Math.max(existingEdge.doc_count, bucket.doc_count);
+              existingEdge.doc_count = bucket.doc_count;
             } else {
               connections.push({
                 // source and target values are indexes into the vertices array
@@ -1298,16 +1374,13 @@ module.exports = (function() {
                 doc_count: bucket.doc_count,
               });
             }
+          } else {
+            const node = nodesForLinking[ids[0]];
+            node.doc_count = bucket.doc_count;
           }
         });
-        // Trim the array of connections so that we don't add too many at once - disorientating for users otherwise
-        if (connections.length > maxNewEdges) {
-          connections = connections.sort(function(a, b) {
-            return b.weight - a.weight;
-          });
-          connections = connections.slice(0, maxNewEdges);
-        }
 
+        self.maxDocCount = maxDocCount;
         // Merge the new edges into the existing workspace's graph.
         // We reuse the mergeGraph function used to handle the
         // results of other calls to the server-side Graph API
@@ -1318,6 +1391,9 @@ module.exports = (function() {
           nodes: vertices,
           edges: connections,
         });
+        if (callback) {
+          callback();
+        }
       });
     };
 
@@ -1559,7 +1635,7 @@ module.exports = (function() {
 
     // Internal utility function for calling the Graph API and handling the response
     // by merging results into existing nodes in this workspace.
-    this.callElasticsearch = function(request) {
+    this.callElasticsearch = function(request, callback) {
       self.lastRequest = JSON.stringify(request, null, '\t');
       graphExplorer(self.options.indexName, request, function(data) {
         self.lastResponse = JSON.stringify(data, null, '\t');
@@ -1598,6 +1674,13 @@ module.exports = (function() {
           });
         }
 
+        if (callback) {
+          callback({
+            nodes: data.vertices,
+            edges: edges,
+          });
+          return;
+        }
         self.mergeGraph(
           {
             nodes: data.vertices,

@@ -93,6 +93,9 @@ export function initGraphApp(angularModule, deps) {
         ['noIndexPatterns', { watchDepth: 'reference' }],
         ['reduxStore', { watchDepth: 'reference' }],
         ['pluginDataStart', { watchDepth: 'reference' }],
+        ['clientWorkspace', { watchDepth: 'reference' }],
+        ['selectedNodes', { watchDepth: 'collection' }],
+        ['notifyAngular', { watchDepth: 'reference' }],
       ],
       { restrict: 'A' }
     );
@@ -301,6 +304,10 @@ export function initGraphApp(angularModule, deps) {
     $scope.loading = false;
     $scope.reduxStore = store;
     $scope.savedWorkspace = $route.current.locals.savedWorkspace;
+
+    $scope.notifyAngular = () => {
+      $scope.$digest();
+    };
 
     // register things for legacy angular UI
     const allSavingDisabled = graphSavePolicy === 'none';
