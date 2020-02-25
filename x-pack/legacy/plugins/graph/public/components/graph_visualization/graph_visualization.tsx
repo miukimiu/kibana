@@ -194,7 +194,12 @@ function GraphVisualizationComponent({
           <g>
             {edges &&
               edges
-                .filter(edge => (edge as any).doc_count >= minDocCount)
+                .filter(
+                  edge =>
+                    (edge as any).doc_count >= minDocCount &&
+                    selectedFieldIds.has(edge.topSrc.data.field) &&
+                    selectedFieldIds.has(edge.topTarget.data.field)
+                )
                 .map(edge => (
                   <line
                     key={`${makeNodeId(edge.source.data.field, edge.source.data.term)}-${makeNodeId(
@@ -220,7 +225,7 @@ function GraphVisualizationComponent({
           </g>
           {nodes &&
             nodes
-              .filter(node => !node.parent)
+              .filter(node => !node.parent && selectedFieldIds.has(node.data.field))
               .map(node => (
                 <g
                   key={makeNodeId(node.data.field, node.data.term)}

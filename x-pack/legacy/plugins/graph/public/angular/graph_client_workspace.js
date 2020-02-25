@@ -5,6 +5,8 @@
  */
 
 // Kibana wrapper
+import { useMemo } from 'react';
+
 const d3 = require('d3');
 
 module.exports = (function() {
@@ -535,8 +537,15 @@ module.exports = (function() {
           });
         }
       }
+
+      const selectedFieldIds = new Set();
+      self.options.vertex_fields.forEach(field => {
+        if (field.hopSize > 0) {
+          selectedFieldIds.add(field.name);
+        }
+      });
       const visibleNodes = self.nodes.filter(function(n) {
-        return n.parent == undefined;
+        return n.parent == undefined && selectedFieldIds.has(n.data.field);
       });
       //reset then roll-up all the counts
       const allNodes = self.nodes;

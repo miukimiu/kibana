@@ -93,6 +93,7 @@ export const syncFieldsSaga = ({ getWorkspace, setLiveResponseFields }: GraphSto
     const currentState = yield select();
     workspace.options.vertex_fields = selectedFieldsSelector(currentState);
     setLiveResponseFields(liveResponseFieldsSelector(currentState));
+    workspace.runLayout();
   }
   return function*() {
     yield takeEvery(
