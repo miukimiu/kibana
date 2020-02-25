@@ -71,8 +71,7 @@ export function GraphApp(props: GraphAppProps) {
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
             {props.isInitialized && sidebarOpen && (
-              reduxStore.getState().metaData.mode === 'data' ?
-              <AddDataPanel {...searchBarProps} filter={filter} /> : <EditNodesPanel {...searchBarProps} />
+              <AddDataPanel {...searchBarProps} filter={filter} />
             )}
             {props.isInitialized && !sidebarOpen && (
               <EuiButtonIcon
@@ -105,7 +104,7 @@ export function GraphApp(props: GraphAppProps) {
                 }}
               />
             )}
-          </EditNodesPanel>
+          </>
         </Provider>
       </KibanaContextProvider>
     </I18nProvider>

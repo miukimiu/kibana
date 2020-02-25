@@ -315,7 +315,6 @@ export function initGraphApp(angularModule, deps) {
     $scope.savedWorkspace = $route.current.locals.savedWorkspace;
 
     $scope.notifyAngular = () => {
-      $scope.$digest();
     };
 
     // register things for legacy angular UI

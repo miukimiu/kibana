@@ -96,6 +96,9 @@ function GraphVisualizationComponent({
   clientWorkspace,
   fields,
   urlTemplates,
+  mode,
+  dataMode,
+  editMode,
 }: GraphVisualizationProps) {
   const svgRoot = useRef<SVGSVGElement | null>(null);
   const [open, setOpen] = useState(false);

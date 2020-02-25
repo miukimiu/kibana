@@ -82,6 +82,7 @@ export const loadingSaga = ({
     yield put(updateSettings(advancedSettings));
     yield put(loadTemplates(urlTemplates));
 
+    getWorkspace()!.fillInGraph();
     getWorkspace()!.runLayout();
   }
 

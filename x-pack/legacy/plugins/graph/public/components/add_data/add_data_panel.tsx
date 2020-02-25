@@ -5,10 +5,12 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { EuiButtonEmpty, EuiButtonIcon, EuiListGroup, EuiPanel } from '@elastic/eui';
+import { EuiButtonEmpty, EuiButtonIcon, EuiListGroup, EuiPanel, EuiToolTip } from '@elastic/eui';
 import { connect } from 'react-redux';
-import { GraphState, selectedFieldsSelector } from '../../state_management';
+import { GraphState, metaDataSelector, selectedFieldsSelector } from '../../state_management';
 import { SignificantSearchBar } from './significant_search_bar';
+import { EditNodesPanel, NodeIcon } from '../edit_nodes_panel';
+import { LegacyIcon } from '../legacy_icon';
 
 function AddDataPanelComponent(props: any) {
   const workspace = props.clientWorkspace;
@@ -38,6 +40,9 @@ function AddDataPanelComponent(props: any) {
     loadInterestingNodes(workspace);
   }, [workspace, query, selectedNodesId, props.filter, activeFields]);
 
+  if (props.mode === 'edit') {
+    return <EditNodesPanel {...props} />;
+  }
   return (
     <div className="gphAddData">
       <div className="gphAddData__header">Add Data</div>
@@ -64,7 +69,12 @@ function AddDataPanelComponent(props: any) {
               </p>
             ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
               <p>
-                Based on current selection of {props.selectedNodes.length} vertices
+                Based on current selection of {props.selectedNodes.length} vertices{' '}
+                {props.selectedNodes.map(node => (
+                  <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
+                    <NodeIcon node={node} />
+                  </EuiToolTip>
+                ))}
                 <EuiButtonIcon
                   aria-label="remove"
                   iconType="trash"
@@ -78,6 +88,11 @@ function AddDataPanelComponent(props: any) {
               <p>Based on vertices in the workspace</p>
             )}
             <EuiListGroup
+              flush
+              style={{
+                maxHeight: 500,
+                overflowY: 'auto',
+              }}
               listItems={significantVertices
                 .filter(
                   // filter out all vertices already added
@@ -91,7 +106,7 @@ function AddDataPanelComponent(props: any) {
                 )
                 .map(vertex => ({
                   label: `${vertex.field}: ${vertex.term}`,
-                  iconType: 'plusInCircle',
+                  icon: <NodeIcon node={vertex} />,
                   size: 's',
                   onClick: async () => {
                     await workspace.addNodes([vertex]);
@@ -120,6 +135,7 @@ function AddDataPanelComponent(props: any) {
 export const AddDataPanel = connect(
   (state: GraphState) => {
     return {
+      mode: metaDataSelector(state).mode,
       fields: selectedFieldsSelector(state),
       // hasDatasource: hasDatasourceSelector(state),
       // hasFields: hasFieldsSelector(state),

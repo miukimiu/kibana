@@ -5,112 +5,140 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { EuiButtonEmpty, EuiButtonIcon, EuiListGroup, EuiPanel } from '@elastic/eui';
+import {
+  EuiButtonIcon,
+  EuiColorPicker,
+  EuiComboBox,
+  EuiFieldText,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiHighlight,
+  EuiPanel,
+} from '@elastic/eui';
 import { connect } from 'react-redux';
-import { GraphState, selectedFieldsSelector } from '../../state_management';
-import { SignificantSearchBar } from './significant_search_bar';
+import { GraphState, selectedFieldsSelector } from '../state_management';
+import { LegacyIcon } from './legacy_icon';
+import { iconChoices } from '../helpers/style_choices';
+
+export function NodeIcon({ node }: any) {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        width: 20,
+        height: 20,
+        backgroundColor: node.color,
+        borderRadius: 999,
+        padding: 3,
+      }}
+    >
+      <LegacyIcon icon={node.icon} asListIcon />
+    </span>
+  );
+}
 
 function EditNodesPanelComponent(props: any) {
   const workspace = props.clientWorkspace;
 
-  const [significantVertices, setSignificantVertices] = useState<any[]>([]);
-  const [query, setQuery] = useState<any>(undefined);
-
-  async function loadInterestingNodes(workspace: any) {
-    if (!workspace) return;
-    const activeFields = props.fields.filter(field => field.hopSize > 0);
-    if (activeFields.length == 0) return;
-    const result = await workspace.getInterestingNodes(query, activeFields);
-    setSignificantVertices(result.nodes);
-  }
-  const selectedNodesId = (props.selectedNodes || []).map(node => node.id).join(',');
-  const activeFields = (props.fields || [])
-    .filter(field => field.hopSize > 0)
-    .map(field => field.name)
-    .join(',');
-
-  useEffect(() => {
-    // reset query when user interacts with graph
-    setQuery(undefined);
-  }, [selectedNodesId]);
-
-  useEffect(() => {
-    loadInterestingNodes(workspace);
-  }, [workspace, query, selectedNodesId, props.filter, activeFields]);
+  const [refresher, setRefresher] = useState(0);
 
   return (
     <div className="gphAddData">
-      <div className="gphAddData__header">Edit selection</div>
+      <div className="gphAddData__header">
+        Edit selection
+        <EuiButtonIcon iconType="cross" aria-label="Exit edit mode" />
+      </div>
       {workspace && (
         <>
-          <EuiPanel>
-            <h3>Selected vertices</h3>
-            {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
-              <SignificantSearchBar
-                {...props}
-                onQuerySubmit={(query: any) => {
-                  setQuery(query);
-                }}
-              />
-            )}
-            {query ? (
-              <p>
-                Based on current search query{' '}
-                <EuiButtonIcon
-                  iconType="trash"
-                  aria-label="remove"
-                  onClick={() => setQuery(undefined)}
-                />
-              </p>
-            ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
-              <p>
-                Based on current selection of {props.selectedNodes.length} vertices
-                <EuiButtonIcon
-                  aria-label="remove"
-                  iconType="trash"
-                  onClick={() => {
-                    workspace.selectNone();
-                    props.notifyAngular();
-                  }}
-                />
-              </p>
-            ) : (
-              <p>Based on vertices in the workspace</p>
-            )}
-            <EuiListGroup
-              listItems={significantVertices
-                .filter(
-                  // filter out all vertices already added
-                  vertex =>
-                    !workspace.nodes ||
-                    !workspace.nodes.some(
-                      (workspaceNode: any) =>
-                        workspaceNode.data.term === vertex.term &&
-                        workspaceNode.data.field === vertex.field
-                    )
-                )
-                .map(vertex => ({
-                  label: `${vertex.field}: ${vertex.term}`,
-                  iconType: 'plusInCircle',
-                  size: 's',
-                  onClick: async () => {
-                    await workspace.addNodes([vertex]);
-                    await loadInterestingNodes(workspace);
-                  },
-                }))}
-            />
-            <EuiButtonEmpty
-              onClick={async () => {
-                await workspace.addNodes(significantVertices);
-                await loadInterestingNodes(workspace);
-              }}
-            >
-              Add all
-            </EuiButtonEmpty>
-          </EuiPanel>
-          <EuiPanel>
-            <h3>Vertices by field</h3>
-          </EuiPanel>
+          <EuiFlexGroup direction="column">
+            <EuiFlexItem>
+              <EuiPanel>
+                <h3>Selected vertices</h3>
+                <EuiFlexGroup direction="column" gutterSize="s">
+                  {workspace &&
+                    workspace.selectedNodes &&
+                    workspace.selectedNodes.length > 0 &&
+                    workspace.selectedNodes.map(node => (
+                      <EuiFlexItem>
+                        <EuiFlexGroup gutterSize="xs" alignItems="center">
+                          <EuiFlexItem grow={false}>
+                            <NodeIcon node={node} />
+                          </EuiFlexItem>
+                          <EuiFlexItem>
+                            <EuiFieldText
+                              value={node.label}
+                              onChange={e => {
+                                node.label = e.target.value;
+                                // super dirty hack to refresh component with only change in mutable data structure
+                                setRefresher(refresher + 1);
+                                props.notifyAngular();
+                              }}
+                            />
+                          </EuiFlexItem>
+                        </EuiFlexGroup>
+                      </EuiFlexItem>
+                    ))}
+                </EuiFlexGroup>
+              </EuiPanel>
+            </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiPanel>
+                <h3>Styles</h3>
+                {workspace && workspace.selectedNodes && workspace.selectedNodes.length > 0 && (
+                    <EuiFlexGroup direction="column" gutterSize="s">
+                    <EuiFlexItem>
+                      <EuiColorPicker
+                        color={workspace.selectedNodes[0].color}
+                        onChange={newColor => {
+                          workspace.selectedNodes.forEach(node => {
+                            node.color = newColor;
+                          });
+
+                          setRefresher(refresher + 1);
+                          props.notifyAngular();
+                        }}
+                      />
+                    </EuiFlexItem>
+                    <EuiFlexItem>
+                      <EuiComboBox
+                        fullWidth
+                        singleSelection={{ asPlainText: true }}
+                        isClearable={false}
+                        renderOption={(option, searchValue, contentClassName) => {
+                          const { label, value } = option;
+                          return (
+                            <span className={contentClassName}>
+                              <LegacyIcon icon={value!} />{' '}
+                              <EuiHighlight search={searchValue}>{label}</EuiHighlight>
+                            </span>
+                          );
+                        }}
+                        options={iconChoices.map(currentIcon => ({
+                          label: currentIcon.label,
+                          value: currentIcon,
+                        }))}
+                        selectedOptions={[
+                          {
+                            label: workspace.selectedNodes[0].icon.label,
+                            value: workspace.selectedNodes[0].icon,
+                          },
+                        ]}
+                        onChange={choices => {
+                          workspace.selectedNodes.forEach(node => {
+                            node.icon = choices[0].value!;
+                          });
+
+                          setRefresher(refresher + 1);
+                          props.notifyAngular();
+                        }}
+                        compressed
+                      />
+                    </EuiFlexItem>
+                  </EuiFlexGroup>
+                )}
+              </EuiPanel>
+            </EuiFlexItem>
+          </EuiFlexGroup>
         </>
       )}
     </div>
