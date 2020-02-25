@@ -943,17 +943,17 @@ module.exports = (function() {
 
     //======= Expand functions to request new additions to the graph
 
-    this.getInterestingNodes = function(searchTerm) {
+    this.getInterestingNodes = function(searchTerm, fields) {
       return new Promise(resolve => {
         if (searchTerm) {
           const numHops = 2;
           if (searchTerm.startsWith('{')) {
             const query = JSON.parse(searchTerm);
             // Is a regular query DSL query
-            self.search(query, undefined, numHops, resolve);
+            self.search(query, fields, numHops, resolve);
             return;
           }
-          self.simpleSearch(searchTerm, undefined, numHops, resolve);
+          self.simpleSearch(searchTerm, fields, numHops, resolve);
           return;
         }
         let startNodes = self.getAllSelectedNodes();
@@ -962,9 +962,9 @@ module.exports = (function() {
         }
         if (startNodes.length > 0) {
           const clone = startNodes.slice();
-          self.expand(clone, { returnInstead: true, callback: resolve });
+          self.expand(clone, { returnInstead: true, callback: resolve, toFields: fields });
         } else {
-          self.simpleSearch('*', undefined, 2, resolve);
+          self.simpleSearch('*', fields, 2, resolve);
         }
       });
     };

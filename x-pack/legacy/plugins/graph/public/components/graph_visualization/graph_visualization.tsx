@@ -4,8 +4,9 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
+import { connect, Provider } from 'react-redux';
 import { debounce } from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import d3, { ZoomEvent } from 'd3';
 import {
@@ -15,10 +16,21 @@ import {
   EuiButtonIcon,
   EuiRange,
   EuiFormRow,
-  EuiPanel,
+  EuiListGroup,
+  EuiIcon,
 } from '@elastic/eui';
-import { WorkspaceNode, WorkspaceEdge } from '../../types';
+import { WorkspaceNode, WorkspaceEdge, WorkspaceField, UrlTemplate } from '../../types';
 import { makeNodeId } from '../../services/persistence';
+import {
+  GraphState,
+  metaDataSelector,
+  selectedFieldsSelector,
+  templatesSelector,
+  updateMetaData,
+} from '../../state_management';
+import { KibanaContextProvider } from '../../../../../../../src/plugins/kibana_react/public/context';
+import { urlTemplateRegex } from '../../helpers/url_template';
+import { LegacyIcon } from '../legacy_icon';
 
 /*
  * The layouting algorithm sets a few extra properties on
@@ -45,6 +57,11 @@ export interface GraphVisualizationProps {
   maxDocCount: number;
   clientWorkspace: any;
   notifyAngular: () => void;
+  fields: WorkspaceField[];
+  urlTemplates: UrlTemplate[];
+  mode: string;
+  dataMode: () => void;
+  editMode: () => void;
 }
 
 function registerZooming(element: SVGSVGElement) {
@@ -70,20 +87,38 @@ const updateLayout = debounce((clientWorkspace: any, count: any) => {
   clientWorkspace.mergeGraph({ edges: [] });
 }, 300);
 
-export function GraphVisualization({
+function GraphVisualizationComponent({
   nodes,
   edges,
   edgeClick,
   nodeClick,
   maxDocCount,
   clientWorkspace,
+  fields,
+  urlTemplates,
 }: GraphVisualizationProps) {
   const svgRoot = useRef<SVGSVGElement | null>(null);
   const [open, setOpen] = useState(false);
   const [popoverForceClosed, setForceClosedPopover] = useState(false);
   const [minDocCount, setMinDocCount] = useState(0);
+  const [showDrilldown, setShowDrilldown] = useState(false);
 
-  const selectedNodesId = (clientWorkspace && clientWorkspace.selectedNodes ? clientWorkspace.selectedNodes : []).map(node => node.id).join(',');
+  const selectedFieldIds = useMemo(() => {
+    const ids = new Set<string>();
+    fields.forEach(field => {
+      if (field.hopSize > 0) {
+        ids.add(field.name);
+      }
+    });
+    return ids;
+  }, [fields]);
+
+  const selectedNodesId = (clientWorkspace && clientWorkspace.selectedNodes
+    ? clientWorkspace.selectedNodes
+    : []
+  )
+    .map(node => node.id)
+    .join(',');
 
   useEffect(() => {
     // reset query when user interacts with graph
@@ -196,7 +231,14 @@ export function GraphVisualization({
                     }
                   }}
                   className="gphNode"
-                  style={{ opacity: (node as any).doc_count >= minDocCount ? 1 : 0.5 }}
+                  style={{
+                    opacity:
+                      (node as any).doc_count > 0 &&
+                      (node as any).doc_count >= minDocCount &&
+                      selectedFieldIds.has(node.data.field)
+                        ? 1
+                        : 0.5,
+                  }}
                 >
                   {topVertex && topVertex.id === node.id && (
                     <foreignObject
@@ -211,8 +253,12 @@ export function GraphVisualization({
                         anchorPosition="upCenter"
                         button={<span />}
                         isOpen={!popoverForceClosed}
+                        onClick={e => {
+                          e.stopPropagation();
+                        }}
                         closePopover={() => {
                           setForceClosedPopover(true);
+                          setShowDrilldown(false);
                           // clientWorkspace.selectNone();
                           // notifyAngular();
                         }}
@@ -223,11 +269,78 @@ export function GraphVisualization({
                           selected
                         </small>
                         <br />
-                        <EuiButtonIcon aria-label="add data" iconType="graphApp" />{' '}
-                        <EuiButtonIcon aria-label="edit" iconType="pencil" />{' '}
-                        <EuiButtonIcon aria-label="group" iconType="submodule" />{' '}
-                        <EuiButtonIcon aria-label="drilldown" iconType="link" />{' '}
-                        <EuiButtonIcon aria-label="remove" iconType="trash" />
+                        <EuiButtonIcon
+                          aria-label="add data"
+                          iconType="graphApp"
+                          disabled={mode === 'data'}
+                          onClick={() => {
+                            dataMode();
+                          }}
+                        />{' '}
+                        <EuiButtonIcon
+                          aria-label="edit"
+                          iconType="pencil"
+                          disabled={mode === 'edit'}
+                          onClick={() => {
+                            editMode();
+                          }}
+                        />{' '}
+                        <EuiButtonIcon
+                          aria-label="group"
+                          iconType="submodule"
+                          disabled={
+                            clientWorkspace.selectedNodes.length === 1 &&
+                            clientWorkspace.selectedNodes[0].numChildren === 0
+                          }
+                          onClick={() => {
+                            setForceClosedPopover(true);
+                            if (clientWorkspace.selectedNodes.length === 1) {
+                              clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
+                            } else {
+                              clientWorkspace.groupSelections(
+                                clientWorkspace.selectedNodes[
+                                  clientWorkspace.selectedNodes.length - 1
+                                ]
+                              );
+                            }
+                          }}
+                        />{' '}
+                        <EuiButtonIcon
+                          aria-label="drilldown"
+                          iconType="link"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setShowDrilldown(!showDrilldown);
+                          }}
+                        />{' '}
+                        <EuiButtonIcon
+                          aria-label="remove"
+                          iconType="trash"
+                          onClick={() => {
+                            clientWorkspace.deleteSelection();
+                          }}
+                        />
+                        {showDrilldown && (
+                          <EuiListGroup
+                            listItems={urlTemplates.map(template => ({
+                              label: template.description,
+                              icon: template.icon ? (
+                                <LegacyIcon icon={template.icon} />
+                              ) : (
+                                <EuiIcon iconType="blank" />
+                              ),
+                              size: 's',
+                              onClick: () => {
+                                const url = template.url;
+                                const newUrl = url.replace(
+                                  urlTemplateRegex,
+                                  template.encoder.encode(clientWorkspace)
+                                );
+                                window.open(newUrl, '_blank');
+                              },
+                            }))}
+                          />
+                        )}
                       </EuiPopover>
                     </foreignObject>
                   )}
@@ -306,3 +419,40 @@ export function GraphVisualization({
     </>
   );
 }
+const ConnectedGraphVisualization = connect(
+  (state: GraphState) => {
+    return {
+      fields: selectedFieldsSelector(state),
+      urlTemplates: templatesSelector(state),
+      mode: metaDataSelector(state).mode,
+      // hasDatasource: hasDatasourceSelector(state),
+      // hasFields: hasFieldsSelector(state),
+    };
+  },
+  dispatch => ({
+    dataMode: () => {
+      dispatch(updateMetaData({ mode: 'data' }));
+    },
+    editMode: () => {
+      dispatch(updateMetaData({ mode: 'edit' }));
+    },
+    // onIndexPatternSelected: (indexPattern: IndexPatternSavedObject) => {
+    //   dispatch(
+    //     requestDatasource({
+    //       type: 'indexpattern',
+    //       id: indexPattern.id,
+    //       title: indexPattern.attributes.title,
+    //     })
+    //   );
+    // },
+    // onFillWorkspace: () => {
+    //   dispatch(fillWorkspace());
+    // },
+  })
+)(GraphVisualizationComponent);
+
+export const GraphVisualization = (props: any) => (
+  <Provider store={props.reduxStore}>
+    <ConnectedGraphVisualization {...props} />
+  </Provider>
+);

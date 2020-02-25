@@ -18,6 +18,7 @@ export interface MetaDataState {
   title: string;
   description: string;
   savedObjectId?: string;
+  mode: 'edit' | 'data';
 }
 
 export const updateMetaData = actionCreator<Partial<MetaDataState>>('UPDATE_META_DATA');
@@ -27,6 +28,7 @@ const initialMetaData: MetaDataState = {
     defaultMessage: 'Unsaved graph',
   }),
   description: '',
+  mode: 'data',
 };
 
 export const metaDataReducer = reducerWithInitialState(initialMetaData)

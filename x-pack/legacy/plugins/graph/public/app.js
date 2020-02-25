@@ -58,10 +58,6 @@ export function initGraphApp(angularModule, deps) {
     return reactDirective(VennDiagram);
   });
 
-  app.directive('graphVisualization', function(reactDirective) {
-    return reactDirective(GraphVisualization);
-  });
-
   app.directive('graphListing', function(reactDirective) {
     return reactDirective(Listing, [
       ['coreStart', { watchDepth: 'reference' }],
@@ -102,7 +98,20 @@ export function initGraphApp(angularModule, deps) {
   });
 
   app.directive('graphVisualization', function(reactDirective) {
-    return reactDirective(GraphVisualization, undefined, { restrict: 'A' });
+    return reactDirective(
+      GraphVisualization,
+      [
+        ['nodes', { watchDepth: 'value' }],
+        ['edges', { watchDepth: 'collection' }],
+        ['edgeClick', { watchDepth: 'reference' }],
+        ['nodeClick', { watchDepth: 'reference' }],
+        ['maxDocCount', { watchDepth: 'reference' }],
+        ['clientWorkspace', { watchDepth: 'reference' }],
+        ['reduxStore', { watchDepth: 'reference' }],
+        ['notifyAngular', { watchDepth: 'reference' }],
+      ],
+      { restrict: 'A' }
+    );
   });
 
   app.config(function($routeProvider) {

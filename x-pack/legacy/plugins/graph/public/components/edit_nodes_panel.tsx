@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { GraphState, selectedFieldsSelector } from '../../state_management';
 import { SignificantSearchBar } from './significant_search_bar';
 
-function AddDataPanelComponent(props: any) {
+function EditNodesPanelComponent(props: any) {
   const workspace = props.clientWorkspace;
 
   const [significantVertices, setSignificantVertices] = useState<any[]>([]);
@@ -40,11 +40,11 @@ function AddDataPanelComponent(props: any) {
 
   return (
     <div className="gphAddData">
-      <div className="gphAddData__header">Add Data</div>
+      <div className="gphAddData__header">Edit selection</div>
       {workspace && (
         <>
           <EuiPanel>
-            <h3>Significant vertices</h3>
+            <h3>Selected vertices</h3>
             {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
               <SignificantSearchBar
                 {...props}
@@ -117,7 +117,7 @@ function AddDataPanelComponent(props: any) {
   );
 }
 
-export const AddDataPanel = connect(
+export const EditNodesPanel = connect(
   (state: GraphState) => {
     return {
       fields: selectedFieldsSelector(state),
@@ -139,4 +139,4 @@ export const AddDataPanel = connect(
     //   dispatch(fillWorkspace());
     // },
   })
-)(AddDataPanelComponent);
+)(EditNodesPanelComponent);

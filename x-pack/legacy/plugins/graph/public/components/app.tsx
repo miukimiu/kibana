@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { EuiSpacer } from '@elastic/eui';
+import { EuiButtonIcon, EuiSpacer } from '@elastic/eui';
 
 import { DataPublicPluginStart } from 'src/plugins/data/public';
 import { Provider } from 'react-redux';
@@ -20,6 +20,7 @@ import { GraphTitle } from './graph_title';
 
 import { KibanaContextProvider } from '../../../../../../src/plugins/kibana_react/public';
 import { AddDataPanel } from './add_data/add_data_panel';
+import { EditNodesPanel } from './edit_nodes_panel';
 import { filterWorkspace } from '../state_management/filter';
 
 export interface GraphAppProps extends SearchBarProps {
@@ -34,6 +35,7 @@ export interface GraphAppProps extends SearchBarProps {
 
 export function GraphApp(props: GraphAppProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [filter, setFilter] = useState<any>(undefined);
   const {
     coreStart,
@@ -68,7 +70,33 @@ export function GraphApp(props: GraphAppProps) {
               <EuiSpacer size="s" />
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
-            {props.isInitialized && <AddDataPanel {...searchBarProps} filter={filter} />}
+            {props.isInitialized && sidebarOpen && (
+              reduxStore.getState().metaData.mode === 'data' ?
+              <AddDataPanel {...searchBarProps} filter={filter} /> : <EditNodesPanel {...searchBarProps} />
+            )}
+            {props.isInitialized && !sidebarOpen && (
+              <EuiButtonIcon
+                onClick={() => {
+                  setSidebarOpen(true);
+                }}
+                iconType="menuLeft"
+                style={{ position: 'absolute', top: 122, right: 5, zIndex: 999 }}
+              />
+            )}
+            {props.isInitialized && sidebarOpen && (
+              <EuiButtonIcon
+                iconType="menuRight"
+                onClick={() => {
+                  setSidebarOpen(false);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 122,
+                  right: 354,
+                  zIndex: 999,
+                }}
+              />
+            )}
             {!props.isInitialized && (
               <GuidancePanel
                 noIndexPatterns={noIndexPatterns}
@@ -77,7 +105,7 @@ export function GraphApp(props: GraphAppProps) {
                 }}
               />
             )}
-          </>
+          </EditNodesPanel>
         </Provider>
       </KibanaContextProvider>
     </I18nProvider>
