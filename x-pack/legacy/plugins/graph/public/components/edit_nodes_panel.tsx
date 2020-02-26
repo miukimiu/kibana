@@ -16,7 +16,7 @@ import {
   EuiPanel,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
-import { GraphState, selectedFieldsSelector } from '../state_management';
+import { GraphState, selectedFieldsSelector, updateMetaData } from '../state_management';
 import { LegacyIcon } from './legacy_icon';
 import { iconChoices } from '../helpers/style_choices';
 
@@ -46,7 +46,7 @@ function EditNodesPanelComponent(props: any) {
     <div className="gphAddData">
       <div className="gphAddData__header">
         Edit selection
-        <EuiButtonIcon iconType="cross" aria-label="Exit edit mode" />
+        <EuiButtonIcon iconType="cross" aria-label="Exit edit mode" onClick={() => { props.dataMode(); }} />
       </div>
       {workspace && (
         <>
@@ -154,6 +154,12 @@ export const EditNodesPanel = connect(
     };
   },
   dispatch => ({
+    dataMode: () => {
+      dispatch(updateMetaData({ mode: 'data' }));
+    },
+    editMode: () => {
+      dispatch(updateMetaData({ mode: 'edit' }));
+    },
     // onIndexPatternSelected: (indexPattern: IndexPatternSavedObject) => {
     //   dispatch(
     //     requestDatasource({

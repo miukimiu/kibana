@@ -157,7 +157,9 @@ module.exports = (function() {
         for (const i in lastOps) {
           lastOps[i].undo();
         }
-        this.runLayout();
+        self.fillInGraph(() => {
+          self.runLayout();
+        });
       }
     };
     this.redo = function() {
@@ -168,7 +170,9 @@ module.exports = (function() {
         for (const i in lastOps) {
           lastOps[i].redo();
         }
-        this.runLayout();
+        self.fillInGraph(() => {
+          self.runLayout();
+        });
       }
     };
 
@@ -285,6 +289,7 @@ module.exports = (function() {
       const newSelections = [];
       for (const n in self.edges) {
         const edge = self.edges[n];
+        if (edge.doc_count < self.minShownDocCount) continue;
         if (!edge.topSrc.isSelected) {
           if (self.selectedNodes.indexOf(edge.topTarget) >= 0) {
             if (newSelections.indexOf(edge.topSrc) < 0) {
@@ -921,7 +926,6 @@ module.exports = (function() {
 
         this.edgesMap[newEdge.id] = newEdge;
         this.edges.push(newEdge);
-        lastOps.push(new AddEdgeOperation(newEdge, self));
       }
 
       if (lastOps.length > 0) {
@@ -1260,7 +1264,14 @@ module.exports = (function() {
      */
     this.fillInGraph = function(callback) {
       const nodesForLinking = self.getAllTopNodes();
-      if (nodesForLinking.length === 0) return;
+      if (nodesForLinking.length === 0) {
+        self.edges = [];
+        self.edgesMap = {};
+        if (callback) {
+          callback();
+        }
+        return;
+      }
 
       // Create our query/aggregation request using the selected nodes.
       // Filters are named after the index of the node in the nodesForLinking
