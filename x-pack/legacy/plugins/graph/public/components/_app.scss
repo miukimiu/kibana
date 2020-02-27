@@ -7,8 +7,105 @@
   right: 0;
   bottom: 0;
   height: calc(100% - 116px);
-  background-color: #eee;
-  z-index: 999;
-  width: 350px;
-  padding: 10px;
+  background-color: $euiPageBackgroundColor;
+  width: $euiSizeXXL * 10;
+  border-top: 1px solid $euiBorderColor;
+  z-index: $euiZNavigation;
+
+  &__body {
+    padding: $euiSize;
+
+    .euiPanel {
+      margin-bottom: $euiSize;
+    }
+    .euiText {
+      margin-bottom: $euiSizeXS;
+    } 
+  }
+
+  &__prependIcon {
+    display: flex;
+    width: $euiSize * 2;
+    align-items: center;
+    justify-content: center;
+    background: $euiColorLightShade; 
+    border-right: 1px solid $euiBorderColor;
+  }
+
+  &__circleIcon {
+    display: flex;
+    width: $euiSizeL;
+    height: $euiSizeL;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+    .gphLegacyIcon {
+      margin-right: 0;
+      text-align: center;
+      display: inline-flex;
+      width: auto;
+    }
+  }
+}
+
+.gphAddData__header {
+  display: flex;
+ border-bottom: 1px solid $euiBorderColor;
+ padding: $euiSize 0;
+
+ &__title {
+  flex: 1;
+  padding: 0 $euiSize;
+ }
+
+ &__title,
+ &__toggleIcon {
+  padding: 0 $euiSize;
+ }
+}
+
+.gphAddData__nodesArea {
+  position: relative;
+  background: $euiColorLightestShade;
+  padding: $euiSizeS $euiSizeS $euiSizeXS $euiSizeS;
+  border-radius: $euiBorderRadius;
+  margin-top: $euiSizeS;
+  margin-bottom: $euiSize;
+
+  > span {
+    margin-right: $euiSizeXS;
+    margin-bottom: $euiSizeXS;
+
+    &:last-of-type {
+      margin-right: 0
+    }
+  }
+
+  &:hover,
+  &:focus {
+    .gphAddData__nodesArea__delete {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  &__delete {
+    @include euiBottomShadowSmall;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-right: -$euiSizeS;
+    margin-top: -$euiSizeM;
+    background: $euiColorEmptyShade;
+    padding: $euiSizeXS;
+    visibility: hidden;
+    opacity: 0;
+  }  
+}
+
+.gphGraph__openSidebar {
+  @include euiBottomShadowSmall;
+  background: $euiColorEmptyShade;
+  padding: $euiSizeXS;
 }

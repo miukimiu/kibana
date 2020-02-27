@@ -71,29 +71,17 @@ export function GraphApp(props: GraphAppProps) {
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
             {props.isInitialized && sidebarOpen && (
-              <AddDataPanel {...searchBarProps} filter={filter} />
+              <AddDataPanel {...searchBarProps} filter={filter} setSidebarOpen={setSidebarOpen} />
             )}
             {props.isInitialized && !sidebarOpen && (
               <EuiButtonIcon
+                className="gphGraph__openSidebar"
                 onClick={() => {
                   setSidebarOpen(true);
                 }}
                 iconType="menuLeft"
                 style={{ position: 'absolute', top: 122, right: 5, zIndex: 999 }}
-              />
-            )}
-            {props.isInitialized && sidebarOpen && (
-              <EuiButtonIcon
-                iconType="menuRight"
-                onClick={() => {
-                  setSidebarOpen(false);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 122,
-                  right: 354,
-                  zIndex: 999,
-                }}
+                color="text"
               />
             )}
             {!props.isInitialized && (
