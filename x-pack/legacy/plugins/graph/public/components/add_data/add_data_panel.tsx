@@ -40,94 +40,93 @@ function AddDataPanelComponent(props: any) {
     loadInterestingNodes(workspace);
   }, [workspace, query, selectedNodesId, props.filter, activeFields]);
 
+  if (!workspace || !props.fields || props.fields.length === 0) return null;
   if (props.mode === 'edit') {
     return <EditNodesPanel {...props} />;
   }
   return (
     <div className="gphAddData">
       <div className="gphAddData__header">Add Data</div>
-      {workspace && (
-        <>
-          <EuiPanel>
-            <h3>Significant vertices</h3>
-            {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
-              <SignificantSearchBar
-                {...props}
-                onQuerySubmit={(query: any) => {
-                  setQuery(query);
+      <>
+        <EuiPanel>
+          <h3>Significant vertices</h3>
+          {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
+            <SignificantSearchBar
+              {...props}
+              onQuerySubmit={(query: any) => {
+                setQuery(query);
+              }}
+            />
+          )}
+          {query ? (
+            <p>
+              Based on current search query{' '}
+              <EuiButtonIcon
+                iconType="trash"
+                aria-label="remove"
+                onClick={() => setQuery(undefined)}
+              />
+            </p>
+          ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
+            <p>
+              Based on current selection of {props.selectedNodes.length} vertices{' '}
+              {props.selectedNodes.map(node => (
+                <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
+                  <NodeIcon node={node} />
+                </EuiToolTip>
+              ))}
+              <EuiButtonIcon
+                aria-label="remove"
+                iconType="trash"
+                onClick={() => {
+                  workspace.selectNone();
+                  props.notifyAngular();
                 }}
               />
-            )}
-            {query ? (
-              <p>
-                Based on current search query{' '}
-                <EuiButtonIcon
-                  iconType="trash"
-                  aria-label="remove"
-                  onClick={() => setQuery(undefined)}
-                />
-              </p>
-            ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
-              <p>
-                Based on current selection of {props.selectedNodes.length} vertices{' '}
-                {props.selectedNodes.map(node => (
-                  <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
-                    <NodeIcon node={node} />
-                  </EuiToolTip>
-                ))}
-                <EuiButtonIcon
-                  aria-label="remove"
-                  iconType="trash"
-                  onClick={() => {
-                    workspace.selectNone();
-                    props.notifyAngular();
-                  }}
-                />
-              </p>
-            ) : (
-              <p>Based on vertices in the workspace</p>
-            )}
-            <EuiListGroup
-              flush
-              style={{
-                maxHeight: 500,
-                overflowY: 'auto',
-              }}
-              listItems={significantVertices
-                .filter(
-                  // filter out all vertices already added
-                  vertex =>
-                    !workspace.nodes ||
-                    !workspace.nodes.some(
-                      (workspaceNode: any) =>
-                        workspaceNode.data.term === vertex.term &&
-                        workspaceNode.data.field === vertex.field
-                    )
-                )
-                .map(vertex => ({
-                  label: `${vertex.field}: ${vertex.term}`,
-                  icon: <NodeIcon node={vertex} />,
-                  size: 's',
-                  onClick: async () => {
-                    await workspace.addNodes([vertex]);
-                    await loadInterestingNodes(workspace);
-                  },
-                }))}
-            />
-            <EuiButtonEmpty
-              onClick={async () => {
-                await workspace.addNodes(significantVertices);
-                await loadInterestingNodes(workspace);
-              }}
-            >
-              Add all
-            </EuiButtonEmpty>
-          </EuiPanel>
-          <EuiPanel>
-            <h3>Vertices by field</h3>
-          </EuiPanel>
-        </>
-      )}
+            </p>
+          ) : (
+            <p>Based on vertices in the workspace</p>
+          )}
+          <EuiListGroup
+            flush
+            style={{
+              maxHeight: 500,
+              overflowY: 'auto',
+            }}
+            listItems={significantVertices
+              .filter(
+                // filter out all vertices already added
+                vertex =>
+                  !workspace.nodes ||
+                  !workspace.nodes.some(
+                    (workspaceNode: any) =>
+                      workspaceNode.data.term === vertex.term &&
+                      workspaceNode.data.field === vertex.field
+                  )
+              )
+              .map(vertex => ({
+                label: `${vertex.field}: ${vertex.term}`,
+                icon: <NodeIcon node={vertex} />,
+                size: 's',
+                onClick: async () => {
+                  await workspace.addNodes([vertex]);
+                  await loadInterestingNodes(workspace);
+                },
+              }))}
+          />
+          <EuiButtonEmpty
+            onClick={async () => {
+              await workspace.addNodes(significantVertices);
+              await loadInterestingNodes(workspace);
+            }}
+          >
+            Add all
+          </EuiButtonEmpty>
+        </EuiPanel>
+        <EuiPanel>
+          <h3>Vertices by field</h3>
+        </EuiPanel>
+      </>
     </div>
   );
 }

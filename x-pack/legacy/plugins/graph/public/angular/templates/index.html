@@ -57,7 +57,7 @@
     redux-store="reduxStore"
     confirm-wipe-workspace="confirmWipeWorkspace"
     is-loading="loading"
-    is-initialized="workspaceInitialized || savedWorkspace.id"
+    is-initialized="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)"
     initial-query="initialQuery"
     plugin-data-start="pluginDataStart"
     core-start="coreStart"
@@ -68,7 +68,7 @@
     notify-angular="notifyAngular"
   ></div>
 
-  <div class="gphGraph__container" id="GraphSvgContainer" ng-if="workspaceInitialized || savedWorkspace.id">
+  <div class="gphGraph__container" id="GraphSvgContainer" ng-if="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)">
     <div
       class="gphVisualization"
       graph-visualization

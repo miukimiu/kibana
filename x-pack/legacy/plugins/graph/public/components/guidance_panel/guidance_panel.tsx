@@ -127,7 +127,7 @@ function GuidancePanelComponent(props: GuidancePanelProps) {
             <ListItem state={hasFields ? 'active' : 'disabled'}>
               <FormattedMessage
                 id="xpack.graph.guidancePanel.nodesItem.description"
-                defaultMessage="Enter a query in the search bar to start exploring. Don't know where to start? {topTerms}."
+                defaultMessage="Pick suggestions from the right to start exploring. Don't know where to start? {topTerms}."
                 values={{
                   topTerms: (
                     <EuiLink onClick={onFillWorkspace} disabled={!hasFields}>
