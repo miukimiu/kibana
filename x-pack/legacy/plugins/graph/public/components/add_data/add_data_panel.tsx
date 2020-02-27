@@ -50,6 +50,7 @@ function AddDataPanelComponent(props: any) {
     loadInterestingNodes(workspace);
   }, [workspace, query, selectedNodesId, props.filter, activeFields]);
 
+  if (!workspace || !props.fields || props.fields.length === 0) return null;
   if (props.mode === 'edit') {
     return <EditNodesPanel {...props} />;
   }
@@ -75,9 +76,7 @@ function AddDataPanelComponent(props: any) {
             <EuiTitle size="xs">
               <h4>Significant vertices</h4>
             </EuiTitle>
-
             <EuiSpacer size="s" />
-
             {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
               <SignificantSearchBar
                 {...props}
@@ -86,7 +85,6 @@ function AddDataPanelComponent(props: any) {
                 }}
               />
             )}
-
             <EuiSpacer size="s" />
             {query ? (
               <p>

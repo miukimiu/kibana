@@ -70,7 +70,7 @@ export function GraphApp(props: GraphAppProps) {
               <EuiSpacer size="s" />
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
-            {props.isInitialized && sidebarOpen && (
+            {sidebarOpen && (
               <AddDataPanel {...searchBarProps} filter={filter} setSidebarOpen={setSidebarOpen} />
             )}
             {props.isInitialized && !sidebarOpen && (
