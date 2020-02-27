@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { EuiFlexGroup, EuiFlexItem, EuiButton, EuiButtonEmpty, EuiToolTip } from '@elastic/eui';
+import { EuiFormRow } from '@elastic/eui';
 import React, { useState, useEffect } from 'react';
 
 import { i18n } from '@kbn/i18n';
@@ -90,20 +90,18 @@ export function SearchBarComponent(props: SearchBarProps) {
         }
       }}
     >
-      <EuiFlexGroup gutterSize="m">
-        <EuiFlexItem>
-          <QueryStringInput
-            disableAutoFocus
-            bubbleSubmitEvent
-            indexPatterns={currentIndexPattern ? [currentIndexPattern] : []}
-            placeholder={i18n.translate('xpack.graph.bar.searchFieldPlaceholder', {
-              defaultMessage: 'Search your data and add to graph',
-            })}
-            query={query}
-            onChange={setQuery}
-          />
-        </EuiFlexItem>
-      </EuiFlexGroup>
+      <EuiFormRow display="rowCompressed">
+        <QueryStringInput
+          disableAutoFocus
+          bubbleSubmitEvent
+          indexPatterns={currentIndexPattern ? [currentIndexPattern] : []}
+          placeholder={i18n.translate('xpack.graph.bar.searchFieldPlaceholder', {
+            defaultMessage: 'Search your data and add to graph',
+          })}
+          query={query}
+          onChange={setQuery}
+        />
+      </EuiFormRow>
     </form>
   );
 }
