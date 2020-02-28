@@ -96,6 +96,7 @@ function AddDataPanelComponent(props: any) {
                   iconType="trash"
                   aria-label="remove"
                   onClick={() => setQuery(undefined)}
+                  color="danger"
                 />
               </p>
             ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
@@ -117,6 +118,7 @@ function AddDataPanelComponent(props: any) {
                     className="gphAddData__nodesArea__delete"
                     aria-label="remove"
                     iconType="trash"
+                    color="danger"
                     onClick={() => {
                       workspace.selectNone();
                       props.notifyAngular();
@@ -130,6 +132,7 @@ function AddDataPanelComponent(props: any) {
               </EuiText>
             )}
             <EuiListGroup
+              className="gphAddData__nodesAddList"
               flush
               style={{
                 maxHeight: 500,
@@ -156,6 +159,7 @@ function AddDataPanelComponent(props: any) {
                   },
                 }))}
             />
+            <EuiSpacer size="s" />
             <EuiTextAlign textAlign="center">
               <EuiButtonEmpty
                 className="gphAddData__ce"

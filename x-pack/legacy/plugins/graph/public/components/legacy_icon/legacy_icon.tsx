@@ -15,6 +15,7 @@ export interface LegacyIconProps {
   onClick?: () => void;
   asListIcon?: boolean;
   className?: string;
+  color?: string;
 }
 
 export function LegacyIcon(props: LegacyIconProps) {
@@ -26,6 +27,7 @@ export function LegacyIcon(props: LegacyIconProps) {
         'gphLegacyIcon--list': props.asListIcon,
       })}
       aria-label={props.icon.label}
+      style={{ color: props.color }}
     >
       {props.icon.code}
     </i>
