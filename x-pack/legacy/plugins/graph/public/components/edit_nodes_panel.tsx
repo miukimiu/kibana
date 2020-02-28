@@ -14,8 +14,13 @@ import {
   EuiFlexItem,
   EuiHighlight,
   EuiPanel,
+  EuiTitle,
+  EuiSpacer,
+  EuiFormRow,
+  EuiIcon,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
+import { isColorDark, hexToRgb } from '@elastic/eui';
 import { GraphState, selectedFieldsSelector, updateMetaData } from '../state_management';
 import { LegacyIcon } from './legacy_icon';
 import { iconChoices } from '../helpers/style_choices';
@@ -23,16 +28,16 @@ import { iconChoices } from '../helpers/style_choices';
 export function NodeIcon({ node }: any) {
   return (
     <span
+      className="gphAddData__circleIcon"
       style={{
-        display: 'inline-block',
-        width: 20,
-        height: 20,
         backgroundColor: node.color,
-        borderRadius: 999,
-        padding: 3,
       }}
     >
-      <LegacyIcon icon={node.icon} asListIcon />
+      <LegacyIcon
+        icon={node.icon}
+        asListIcon
+        color={isColorDark(...hexToRgb(node.color)) ? 'white' : 'black'}
+      />
     </span>
   );
 }
@@ -45,101 +50,115 @@ function EditNodesPanelComponent(props: any) {
   return (
     <div className="gphAddData">
       <div className="gphAddData__header">
-        Edit selection
-        <EuiButtonIcon iconType="cross" aria-label="Exit edit mode" onClick={() => { props.dataMode(); }} />
+        <EuiTitle size="xs" className="gphAddData__header__title">
+          <h2>Edit Selection</h2>
+        </EuiTitle>
+        <EuiButtonIcon
+          className="gphAddData__header__toggleIcon"
+          iconType="menuRight"
+          color="text"
+          onClick={() => {
+            props.dataMode();
+          }}
+        />
       </div>
       {workspace && (
-        <>
-          <EuiFlexGroup direction="column">
-            <EuiFlexItem>
-              <EuiPanel>
-                <h3>Selected vertices</h3>
-                <EuiFlexGroup direction="column" gutterSize="s">
-                  {workspace &&
-                    workspace.selectedNodes &&
-                    workspace.selectedNodes.length > 0 &&
-                    workspace.selectedNodes.map(node => (
-                      <EuiFlexItem>
-                        <EuiFlexGroup gutterSize="xs" alignItems="center">
-                          <EuiFlexItem grow={false}>
-                            <NodeIcon node={node} />
-                          </EuiFlexItem>
-                          <EuiFlexItem>
-                            <EuiFieldText
-                              value={node.label}
-                              onChange={e => {
-                                node.label = e.target.value;
-                                // super dirty hack to refresh component with only change in mutable data structure
-                                setRefresher(refresher + 1);
-                                props.notifyAngular();
-                              }}
-                            />
-                          </EuiFlexItem>
-                        </EuiFlexGroup>
-                      </EuiFlexItem>
-                    ))}
-                </EuiFlexGroup>
-              </EuiPanel>
-            </EuiFlexItem>
-            <EuiFlexItem>
-              <EuiPanel>
-                <h3>Styles</h3>
-                {workspace && workspace.selectedNodes && workspace.selectedNodes.length > 0 && (
-                    <EuiFlexGroup direction="column" gutterSize="s">
-                    <EuiFlexItem>
-                      <EuiColorPicker
-                        color={workspace.selectedNodes[0].color}
-                        onChange={newColor => {
-                          workspace.selectedNodes.forEach(node => {
-                            node.color = newColor;
-                          });
+        <div className="gphAddData__body">
+          <EuiPanel>
+            <EuiTitle size="xs">
+              <h4>Selected vertices</h4>
+            </EuiTitle>
 
-                          setRefresher(refresher + 1);
-                          props.notifyAngular();
-                        }}
-                      />
-                    </EuiFlexItem>
-                    <EuiFlexItem>
-                      <EuiComboBox
-                        fullWidth
-                        singleSelection={{ asPlainText: true }}
-                        isClearable={false}
-                        renderOption={(option, searchValue, contentClassName) => {
-                          const { label, value } = option;
-                          return (
-                            <span className={contentClassName}>
-                              <LegacyIcon icon={value!} />{' '}
-                              <EuiHighlight search={searchValue}>{label}</EuiHighlight>
-                            </span>
-                          );
-                        }}
-                        options={iconChoices.map(currentIcon => ({
-                          label: currentIcon.label,
-                          value: currentIcon,
-                        }))}
-                        selectedOptions={[
-                          {
-                            label: workspace.selectedNodes[0].icon.label,
-                            value: workspace.selectedNodes[0].icon,
-                          },
-                        ]}
-                        onChange={choices => {
-                          workspace.selectedNodes.forEach(node => {
-                            node.icon = choices[0].value!;
-                          });
+            <EuiSpacer size="s" />
 
-                          setRefresher(refresher + 1);
-                          props.notifyAngular();
-                        }}
-                        compressed
-                      />
-                    </EuiFlexItem>
-                  </EuiFlexGroup>
-                )}
-              </EuiPanel>
-            </EuiFlexItem>
-          </EuiFlexGroup>
-        </>
+            {workspace &&
+              workspace.selectedNodes &&
+              workspace.selectedNodes.length > 0 &&
+              workspace.selectedNodes.map(node => (
+                <EuiFormRow display="rowCompressed" className="gphAddData__editNodeName">
+                  <EuiFieldText
+                    compressed
+                    fullWidth
+                    value={node.label}
+                    onChange={e => {
+                      node.label = e.target.value;
+                      // super dirty hack to refresh component with only change in mutable data structure
+                      setRefresher(refresher + 1);
+                      props.notifyAngular();
+                    }}
+                    prepend={
+                      <div className="gphAddData__prependIcon">
+                        <NodeIcon node={node} />
+                      </div>
+                    }
+                  />
+                </EuiFormRow>
+              ))}
+          </EuiPanel>
+
+          <EuiPanel>
+            <EuiTitle size="xs">
+              <h4>Styles</h4>
+            </EuiTitle>
+
+            <EuiSpacer size="s" />
+
+            {workspace && workspace.selectedNodes && workspace.selectedNodes.length > 0 && (
+              <>
+                <EuiFormRow display="columnCompressed" label="Color">
+                  <EuiColorPicker
+                    compressed
+                    color={workspace.selectedNodes[0].color}
+                    onChange={newColor => {
+                      workspace.selectedNodes.forEach(node => {
+                        node.color = newColor;
+                      });
+
+                      setRefresher(refresher + 1);
+                      props.notifyAngular();
+                    }}
+                  />
+                </EuiFormRow>
+
+                <EuiFormRow display="columnCompressed" label="Icon">
+                  <EuiComboBox
+                    fullWidth
+                    singleSelection={{ asPlainText: true }}
+                    isClearable={false}
+                    renderOption={(option, searchValue, contentClassName) => {
+                      const { label, value } = option;
+                      return (
+                        <span className={contentClassName}>
+                          <LegacyIcon icon={value!} />{' '}
+                          <EuiHighlight search={searchValue}>{label}</EuiHighlight>
+                        </span>
+                      );
+                    }}
+                    options={iconChoices.map(currentIcon => ({
+                      label: currentIcon.label,
+                      value: currentIcon,
+                    }))}
+                    selectedOptions={[
+                      {
+                        label: workspace.selectedNodes[0].icon.label,
+                        value: workspace.selectedNodes[0].icon,
+                      },
+                    ]}
+                    onChange={choices => {
+                      workspace.selectedNodes.forEach(node => {
+                        node.icon = choices[0].value!;
+                      });
+
+                      setRefresher(refresher + 1);
+                      props.notifyAngular();
+                    }}
+                    compressed
+                  />
+                </EuiFormRow>
+              </>
+            )}
+          </EuiPanel>
+        </div>
       )}
     </div>
   );

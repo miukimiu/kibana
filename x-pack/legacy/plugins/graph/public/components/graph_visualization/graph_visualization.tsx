@@ -105,6 +105,7 @@ function GraphVisualizationComponent({
   mode,
   dataMode,
   editMode,
+  notifyAngular,
 }: GraphVisualizationProps) {
   const svgRoot = useRef<SVGSVGElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -114,6 +115,7 @@ function GraphVisualizationComponent({
   const [showDrilldown, setShowDrilldown] = useState(false);
   const [selectedEdge, setSelectedEdge] = useState<any>(undefined);
   const [edgeSummary, setEdgeSummary] = useState<any>(undefined);
+  const [refresher, setRefresher] = useState(0);
 
   useEffect(() => {
     if (!selectedEdge) return;
@@ -291,49 +293,54 @@ function GraphVisualizationComponent({
             </EuiPanel>
           }
           isOpen={selectionOpen}
-          closePopover={() => setOpen(false)}
+          closePopover={() => setSelectionOpen(false)}
         >
-          <EuiContextMenuPanel
-            title="Selections"
-            items={[
-              <EuiContextMenuItem
-                key="all"
-                icon="empty"
-                onClick={() => {
-                  clientWorkspace.selectAll();
-                }}
-              >
-                All
-              </EuiContextMenuItem>,
-              <EuiContextMenuItem
-                key="none"
-                icon="empty"
-                onClick={() => {
-                  clientWorkspace.selectNone();
-                }}
-              >
-                None
-              </EuiContextMenuItem>,
-              <EuiContextMenuItem
-                key="invert"
-                icon="empty"
-                onClick={() => {
-                  clientWorkspace.selectInvert();
-                }}
-              >
-                Invert
-              </EuiContextMenuItem>,
-              <EuiContextMenuItem
-                key="linked"
-                icon="empty"
-                onClick={() => {
-                  clientWorkspace.selectNeighbours();
-                }}
-              >
-                Linked
-              </EuiContextMenuItem>,
-            ]}
-          />
+          <EuiContextMenuPanel title="Selections">
+            <EuiContextMenuItem
+              key="all"
+              icon="empty"
+              onClick={() => {
+                clientWorkspace.selectAll();
+                setRefresher(refresher + 1);
+                notifyAngular();
+              }}
+            >
+              All
+            </EuiContextMenuItem>
+            <EuiContextMenuItem
+              key="none"
+              icon="empty"
+              onClick={() => {
+                clientWorkspace.selectNone();
+                setRefresher(refresher + 1);
+                notifyAngular();
+              }}
+            >
+              None
+            </EuiContextMenuItem>
+            <EuiContextMenuItem
+              key="invert"
+              icon="empty"
+              onClick={() => {
+                clientWorkspace.selectInvert();
+                setRefresher(refresher + 1);
+                notifyAngular();
+              }}
+            >
+              Invert
+            </EuiContextMenuItem>
+            <EuiContextMenuItem
+              key="linked"
+              icon="empty"
+              onClick={() => {
+                clientWorkspace.selectNeighbours();
+                setRefresher(refresher + 1);
+                notifyAngular();
+              }}
+            >
+              Linked
+            </EuiContextMenuItem>
+          </EuiContextMenuPanel>
         </EuiPopover>
       </div>
       <svg

@@ -16,6 +16,10 @@ import {
   EuiFlexGroup,
   EuiFlexItem,
   EuiFieldText,
+  EuiTitle,
+  EuiSpacer,
+  EuiText,
+  EuiTextAlign,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
 import { GraphState, metaDataSelector, selectedFieldsSelector } from '../../state_management';
@@ -74,108 +78,85 @@ function AddDataPanelComponent(props: any) {
   }
   return (
     <div className="gphAddData">
-      <div className="gphAddData__header">Add Data</div>
-      <EuiFlexGroup direction="column" gutterSize="s">
-        <EuiFlexItem>
-          <EuiPanel>
-            <EuiAccordion initialIsOpen={true} buttonContent="Significant vertices">
-              {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
-                <SignificantSearchBar
-                  {...props}
-                  onQuerySubmit={(query: any) => {
-                    setQuery(query);
-                  }}
-                />
-              )}
-              {query ? (
-                <p>
-                  Based on current search query{' '}
-                  <EuiButtonIcon
-                    iconType="trash"
-                    aria-label="remove"
-                    onClick={() => setQuery(undefined)}
-                  />
-                </p>
-              ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
-                <p>
-                  Based on current selection of {props.selectedNodes.length} vertices{' '}
-                  {props.selectedNodes.map(node => (
-                    <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
-                      <NodeIcon node={node} />
-                    </EuiToolTip>
-                  ))}
-                  <EuiButtonIcon
-                    aria-label="remove"
-                    iconType="trash"
-                    onClick={() => {
-                      workspace.selectNone();
-                      props.notifyAngular();
-                    }}
-                  />
-                </p>
-              ) : (
-                <p>Based on vertices in the workspace</p>
-              )}
-              <EuiListGroup
-                flush
-                style={{
-                  maxHeight: 300,
-                  overflowY: 'auto',
-                }}
-                listItems={significantVertices
-                  .filter(
-                    // filter out all vertices already added
-                    vertex =>
-                      !workspace.nodes ||
-                      !workspace.nodes.some(
-                        (workspaceNode: any) =>
-                          workspaceNode.data.term === vertex.term &&
-                          workspaceNode.data.field === vertex.field
-                      )
-                  )
-                  .map(vertex => ({
-                    label: `${vertex.field}: ${vertex.term}`,
-                    icon: <NodeIcon node={vertex} />,
-                    size: 's',
-                    onClick: async () => {
-                      await workspace.addNodes([vertex]);
-                      await loadInterestingNodes(workspace);
-                    },
-                  }))}
-              />
-              <EuiButtonEmpty
-                onClick={async () => {
-                  await workspace.addNodes(significantVertices);
-                  await loadInterestingNodes(workspace);
-                }}
-              >
-                Add all
-              </EuiButtonEmpty>
-            </EuiAccordion>
-          </EuiPanel>
-        </EuiFlexItem>
-        <EuiFlexItem>
-          <EuiPanel>
-            <EuiAccordion initialIsOpen={false} buttonContent="Vertices by field">
-              <EuiComboBox
-                placeholder="Select a single option"
-                singleSelection={{ asPlainText: true }}
-                options={props.fields.map(field => ({ label: field.name }))}
-                selectedOptions={selectedField ? [{ label: selectedField.name }] : []}
-                onChange={choices => {
-                  setSelectedField(props.fields.find(field => field.name === choices[0].label));
-                }}
-                isClearable
-              />
-              {selectedField && (
-                <>
+      <div className="gphAddData__header">
+        <EuiTitle size="xs" className="gphAddData__header__title">
+          <h2>Add Data</h2>
+        </EuiTitle>
+
+        <EuiButtonIcon
+          className="gphAddData__header__toggleIcon"
+          iconType="menuRight"
+          color="text"
+          onClick={() => {
+            props.setSidebarOpen(false);
+          }}
+        />
+      </div>
+      {workspace && (
+        <div className="gphAddData__body">
+          <EuiFlexGroup direction="column" gutterSize="s">
+            <EuiFlexItem>
+              <EuiPanel>
+                <EuiAccordion initialIsOpen={true} buttonContent="Significant vertices">
+                  {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
+                    <SignificantSearchBar
+                      {...props}
+                      onQuerySubmit={(query: any) => {
+                        setQuery(query);
+                      }}
+                    />
+                  )}
+                  <EuiSpacer size="s" />
+                  {query ? (
+                    <p>
+                      Based on current search query{' '}
+                      <EuiButtonIcon
+                        iconType="trash"
+                        aria-label="remove"
+                        onClick={() => setQuery(undefined)}
+                        color="danger"
+                      />
+                    </p>
+                  ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
+                    <>
+                      <EuiText>
+                        <p>Based on current selection of {props.selectedNodes.length} vertices:</p>
+                      </EuiText>
+                      <div className="gphAddData__nodesArea">
+                        {props.selectedNodes.map(node => (
+                          <EuiToolTip
+                            position="top"
+                            className="gphAddData__nodesArea__icon"
+                            content={`${node.data.field}: ${node.data.term}`}
+                          >
+                            <NodeIcon node={node} />
+                          </EuiToolTip>
+                        ))}
+                        <EuiButtonIcon
+                          className="gphAddData__nodesArea__delete"
+                          aria-label="remove"
+                          iconType="trash"
+                          color="danger"
+                          onClick={() => {
+                            workspace.selectNone();
+                            props.notifyAngular();
+                          }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <EuiText>
+                      <p>Based on vertices in the workspace</p>
+                    </EuiText>
+                  )}
                   <EuiListGroup
                     flush
+                    className="gphAddData__nodesAddList"
                     style={{
-                      maxHeight: 500,
+                      maxHeight: 300,
                       overflowY: 'auto',
                     }}
-                    listItems={terms
+                    listItems={significantVertices
                       .filter(
                         // filter out all vertices already added
                         vertex =>
@@ -192,65 +173,127 @@ function AddDataPanelComponent(props: any) {
                         size: 's',
                         onClick: async () => {
                           await workspace.addNodes([vertex]);
-                          workspace.getTermsForField(res => {
-                            setTerms(res);
-                          }, selectedField.name);
+                          await loadInterestingNodes(workspace);
                         },
                       }))}
                   />
+                  <EuiTextAlign textAlign="center">
+                    <EuiButtonEmpty
+                      iconType="plusInCircleFilled"
+                      className="gphAddData__ce"
+                      onClick={async () => {
+                        await workspace.addNodes(significantVertices);
+                        await loadInterestingNodes(workspace);
+                      }}
+                    >
+                      Add all
+                    </EuiButtonEmpty>
+                  </EuiTextAlign>
+                </EuiAccordion>
+              </EuiPanel>
+            </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiPanel>
+                <EuiAccordion initialIsOpen={false} buttonContent="Vertices by field">
+                  <EuiComboBox
+                    placeholder="Select a single option"
+                    singleSelection={{ asPlainText: true }}
+                    options={props.fields.map(field => ({ label: field.name }))}
+                    selectedOptions={selectedField ? [{ label: selectedField.name }] : []}
+                    onChange={choices => {
+                      setSelectedField(props.fields.find(field => field.name === choices[0].label));
+                    }}
+                    isClearable
+                  />
+                  {selectedField && (
+                    <>
+                      <EuiListGroup
+                        flush
+                        style={{
+                          maxHeight: 500,
+                          overflowY: 'auto',
+                        }}
+                        listItems={terms
+                          .filter(
+                            // filter out all vertices already added
+                            vertex =>
+                              !workspace.nodes ||
+                              !workspace.nodes.some(
+                                (workspaceNode: any) =>
+                                  workspaceNode.data.term === vertex.term &&
+                                  workspaceNode.data.field === vertex.field
+                              )
+                          )
+                          .map(vertex => ({
+                            label: `${vertex.field}: ${vertex.term}`,
+                            icon: <NodeIcon node={vertex} />,
+                            size: 's',
+                            onClick: async () => {
+                              await workspace.addNodes([vertex]);
+                              workspace.getTermsForField(res => {
+                                setTerms(res);
+                              }, selectedField.name);
+                            },
+                          }))}
+                      />
 
+                      <EuiButtonEmpty
+                        iconType="plusInCircleFilled"
+                        onClick={async () => {
+                          await workspace.addNodes(terms);
+                          workspace.getTermsForField(res => {
+                            setTerms(res);
+                          }, selectedField.name);
+                        }}
+                      >
+                        Add all
+                      </EuiButtonEmpty>
+                    </>
+                  )}
+                </EuiAccordion>
+              </EuiPanel>
+            </EuiFlexItem>
+            <EuiFlexItem>
+              <EuiPanel>
+                <EuiAccordion initialIsOpen={false} buttonContent="Free vertex">
+                  <EuiFieldText
+                    placeholder="Field"
+                    value={freeField}
+                    onChange={e => {
+                      setFreeField(e.target.value);
+                    }}
+                  />{' '}
+                  ={' '}
+                  <EuiFieldText
+                    placeholder="Term"
+                    value={freeTerm}
+                    onChange={e => {
+                      setFreeTerm(e.target.value);
+                    }}
+                  />
                   <EuiButtonEmpty
+                    className="gphAddData__ce"
                     onClick={async () => {
-                      await workspace.addNodes(terms);
-                      workspace.getTermsForField(res => {
-                        setTerms(res);
-                      }, selectedField.name);
+                      iconType = 'plusInCircleFilled';
+                      await workspace.addNodes([
+                        {
+                          color: '#aaa',
+                          icon: iconChoices[0],
+                          field: freeField,
+                          term: freeTerm,
+                          alwaysKeep: true,
+                        },
+                      ]);
                     }}
                   >
-                    Add all
+                    Add
                   </EuiButtonEmpty>
-                </>
-              )}
-            </EuiAccordion>
-          </EuiPanel>
-        </EuiFlexItem>
-        <EuiFlexItem>
-          <EuiPanel>
-            <EuiAccordion initialIsOpen={false} buttonContent="Free vertex">
-              <EuiFieldText
-                placeholder="Field"
-                value={freeField}
-                onChange={e => {
-                  setFreeField(e.target.value);
-                }}
-              />{' '}
-              ={' '}
-              <EuiFieldText
-                placeholder="Term"
-                value={freeTerm}
-                onChange={e => {
-                  setFreeTerm(e.target.value);
-                }}
-              />
-              <EuiButtonEmpty
-                onClick={async () => {
-                  await workspace.addNodes([
-                    {
-                      color: '#aaa',
-                      icon: iconChoices[0],
-                      field: freeField,
-                      term: freeTerm,
-                      alwaysKeep: true,
-                    },
-                  ]);
-                }}
-              >
-                Add
-              </EuiButtonEmpty>
-            </EuiAccordion>
-          </EuiPanel>
-        </EuiFlexItem>
-      </EuiFlexGroup>
+                </EuiAccordion>
+              </EuiPanel>
+            </EuiFlexItem>
+          </EuiFlexGroup>
+        </div>
+      )}
     </div>
   );
 }
