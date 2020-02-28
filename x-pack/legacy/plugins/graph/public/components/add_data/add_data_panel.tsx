@@ -209,8 +209,9 @@ function AddDataPanelComponent(props: any) {
                     <>
                       <EuiListGroup
                         flush
+                        className="gphAddData__nodesAddList"
                         style={{
-                          maxHeight: 500,
+                          maxHeight: 300,
                           overflowY: 'auto',
                         }}
                         listItems={terms
@@ -238,6 +239,7 @@ function AddDataPanelComponent(props: any) {
                       />
 
                       <EuiButtonEmpty
+                        className="gphAddData__ce"
                         iconType="plusInCircleFilled"
                         onClick={async () => {
                           await workspace.addNodes(terms);
@@ -273,8 +275,8 @@ function AddDataPanelComponent(props: any) {
                   />
                   <EuiButtonEmpty
                     className="gphAddData__ce"
+                    iconType="plusInCircleFilled"
                     onClick={async () => {
-                      iconType = 'plusInCircleFilled';
                       await workspace.addNodes([
                         {
                           color: '#aaa',
