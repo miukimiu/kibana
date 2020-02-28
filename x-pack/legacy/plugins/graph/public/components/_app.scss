@@ -23,6 +23,10 @@
     } 
   }
 
+  &__editNodeName + &__editNodeName {
+    margin-top: $euiSizeS;
+   }
+
   &__prependIcon {
     display: flex;
     width: $euiSize * 2;
@@ -45,6 +49,7 @@
       text-align: center;
       display: inline-flex;
       width: auto;
+      font-size: 12px;
     }
   }
 }
@@ -65,21 +70,25 @@
  }
 }
 
+
 .gphAddData__nodesArea {
   position: relative;
-  background: $euiColorLightestShade;
-  padding: $euiSizeS $euiSizeS $euiSizeXS $euiSizeS;
+  padding: $euiSize $euiSizeS;
+  border: $euiBorderThin;
   border-radius: $euiBorderRadius;
   margin-top: $euiSizeS;
   margin-bottom: $euiSize;
 
   > span {
     margin-right: $euiSizeXS;
-    margin-bottom: $euiSizeXS;
 
     &:last-of-type {
       margin-right: 0
     }
+  }
+
+  span + span {
+    margin-top: $euiSizeXS;
   }
 
   &:hover,
@@ -93,7 +102,7 @@
   &__delete {
     @include euiBottomShadowSmall;
     position: absolute;
-    top: 0;
+    top: 50%;
     right: 0;
     margin-right: -$euiSizeS;
     margin-top: -$euiSizeM;
@@ -104,8 +113,17 @@
   }  
 }
 
+.gphAddData__nodesAddList {
+  box-sizing: border-box;
+
+  .gphAddData__circleIcon {
+    margin-right: $euiSizeS;
+  }
+}
+
 .gphGraph__openSidebar {
   @include euiBottomShadowSmall;
   background: $euiColorEmptyShade;
   padding: $euiSizeXS;
 }
+

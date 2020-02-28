@@ -20,6 +20,7 @@ import {
   EuiIcon,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
+import { isColorDark, hexToRgb } from '@elastic/eui';
 import { GraphState, selectedFieldsSelector, updateMetaData } from '../state_management';
 import { LegacyIcon } from './legacy_icon';
 import { iconChoices } from '../helpers/style_choices';
@@ -32,7 +33,11 @@ export function NodeIcon({ node }: any) {
         backgroundColor: node.color,
       }}
     >
-      <LegacyIcon icon={node.icon} asListIcon />
+      <LegacyIcon
+        icon={node.icon}
+        asListIcon
+        color={isColorDark(...hexToRgb(node.color)) ? 'white' : 'black'}
+      />
     </span>
   );
 }
@@ -70,9 +75,10 @@ function EditNodesPanelComponent(props: any) {
               workspace.selectedNodes &&
               workspace.selectedNodes.length > 0 &&
               workspace.selectedNodes.map(node => (
-                <EuiFormRow display="rowCompressed">
+                <EuiFormRow display="rowCompressed" className="gphAddData__editNodeName">
                   <EuiFieldText
                     compressed
+                    fullWidth
                     value={node.label}
                     onChange={e => {
                       node.label = e.target.value;
