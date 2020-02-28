@@ -361,8 +361,10 @@ function GraphVisualizationComponent({
                   .filter(
                     edge =>
                       (edge as any).doc_count >= minDocCount &&
-                      selectedFieldIds.has(edge.topSrc.data.field) &&
-                      selectedFieldIds.has(edge.topTarget.data.field)
+                      (selectedFieldIds.has(edge.topSrc.data.field) ||
+                        edge.topSrc.data.alwaysKeep) &&
+                      (selectedFieldIds.has(edge.topTarget.data.field) ||
+                        edge.topSrc.data.alwaysKeep)
                   )
                   .map(edge => (
                     <>
@@ -437,7 +439,10 @@ function GraphVisualizationComponent({
             </g>
             {nodes &&
               nodes
-                .filter(node => !node.parent && selectedFieldIds.has(node.data.field))
+                .filter(
+                  node =>
+                    !node.parent && (selectedFieldIds.has(node.data.field) || node.data.alwaysKeep)
+                )
                 .map(node => (
                   <g
                     key={makeNodeId(node.data.field, node.data.term)}
@@ -453,9 +458,7 @@ function GraphVisualizationComponent({
                     className="gphNode"
                     style={{
                       opacity:
-                        (node as any).doc_count > 0 &&
-                        (node as any).doc_count >= minDocCount &&
-                        selectedFieldIds.has(node.data.field)
+                        (node as any).doc_count > 0 && (node as any).doc_count >= minDocCount
                           ? 1
                           : 0.5,
                     }}

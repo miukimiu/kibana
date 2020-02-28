@@ -5,18 +5,46 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { EuiButtonEmpty, EuiButtonIcon, EuiListGroup, EuiPanel, EuiToolTip } from '@elastic/eui';
+import {
+  EuiButtonEmpty,
+  EuiButtonIcon,
+  EuiListGroup,
+  EuiPanel,
+  EuiToolTip,
+  EuiComboBox,
+  EuiAccordion,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiFieldText,
+} from '@elastic/eui';
 import { connect } from 'react-redux';
 import { GraphState, metaDataSelector, selectedFieldsSelector } from '../../state_management';
 import { SignificantSearchBar } from './significant_search_bar';
 import { EditNodesPanel, NodeIcon } from '../edit_nodes_panel';
 import { LegacyIcon } from '../legacy_icon';
+import { WorkspaceField } from '../../types';
+import { iconChoices } from '../../helpers/style_choices';
 
 function AddDataPanelComponent(props: any) {
   const workspace = props.clientWorkspace;
 
   const [significantVertices, setSignificantVertices] = useState<any[]>([]);
   const [query, setQuery] = useState<any>(undefined);
+  const [selectedField, setSelectedField] = useState<WorkspaceField | undefined>(undefined);
+  const [terms, setTerms] = useState<any[]>([]);
+  const [freeField, setFreeField] = useState<string>('');
+  const [freeTerm, setFreeTerm] = useState<string>('');
+
+  useEffect(() => {
+    if (!workspace) return;
+    if (!selectedField) {
+      setTerms([]);
+      return;
+    }
+    workspace.getTermsForField(res => {
+      setTerms(res);
+    }, selectedField.name);
+  }, [selectedField, props.filter]);
 
   async function loadInterestingNodes(workspace: any) {
     if (!workspace) return;
@@ -47,86 +75,182 @@ function AddDataPanelComponent(props: any) {
   return (
     <div className="gphAddData">
       <div className="gphAddData__header">Add Data</div>
-      <>
-        <EuiPanel>
-          <h3>Significant vertices</h3>
-          {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
-            <SignificantSearchBar
-              {...props}
-              onQuerySubmit={(query: any) => {
-                setQuery(query);
-              }}
-            />
-          )}
-          {query ? (
-            <p>
-              Based on current search query{' '}
-              <EuiButtonIcon
-                iconType="trash"
-                aria-label="remove"
-                onClick={() => setQuery(undefined)}
+      <EuiFlexGroup direction="column" gutterSize="s">
+        <EuiFlexItem>
+          <EuiPanel>
+            <EuiAccordion initialIsOpen={true} buttonContent="Significant vertices">
+              {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
+                <SignificantSearchBar
+                  {...props}
+                  onQuerySubmit={(query: any) => {
+                    setQuery(query);
+                  }}
+                />
+              )}
+              {query ? (
+                <p>
+                  Based on current search query{' '}
+                  <EuiButtonIcon
+                    iconType="trash"
+                    aria-label="remove"
+                    onClick={() => setQuery(undefined)}
+                  />
+                </p>
+              ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
+                <p>
+                  Based on current selection of {props.selectedNodes.length} vertices{' '}
+                  {props.selectedNodes.map(node => (
+                    <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
+                      <NodeIcon node={node} />
+                    </EuiToolTip>
+                  ))}
+                  <EuiButtonIcon
+                    aria-label="remove"
+                    iconType="trash"
+                    onClick={() => {
+                      workspace.selectNone();
+                      props.notifyAngular();
+                    }}
+                  />
+                </p>
+              ) : (
+                <p>Based on vertices in the workspace</p>
+              )}
+              <EuiListGroup
+                flush
+                style={{
+                  maxHeight: 300,
+                  overflowY: 'auto',
+                }}
+                listItems={significantVertices
+                  .filter(
+                    // filter out all vertices already added
+                    vertex =>
+                      !workspace.nodes ||
+                      !workspace.nodes.some(
+                        (workspaceNode: any) =>
+                          workspaceNode.data.term === vertex.term &&
+                          workspaceNode.data.field === vertex.field
+                      )
+                  )
+                  .map(vertex => ({
+                    label: `${vertex.field}: ${vertex.term}`,
+                    icon: <NodeIcon node={vertex} />,
+                    size: 's',
+                    onClick: async () => {
+                      await workspace.addNodes([vertex]);
+                      await loadInterestingNodes(workspace);
+                    },
+                  }))}
               />
-            </p>
-          ) : props.selectedNodes && props.selectedNodes.length > 0 ? (
-            <p>
-              Based on current selection of {props.selectedNodes.length} vertices{' '}
-              {props.selectedNodes.map(node => (
-                <EuiToolTip position="top" content={`${node.data.field}: ${node.data.term}`}>
-                  <NodeIcon node={node} />
-                </EuiToolTip>
-              ))}
-              <EuiButtonIcon
-                aria-label="remove"
-                iconType="trash"
-                onClick={() => {
-                  workspace.selectNone();
-                  props.notifyAngular();
+              <EuiButtonEmpty
+                onClick={async () => {
+                  await workspace.addNodes(significantVertices);
+                  await loadInterestingNodes(workspace);
+                }}
+              >
+                Add all
+              </EuiButtonEmpty>
+            </EuiAccordion>
+          </EuiPanel>
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <EuiPanel>
+            <EuiAccordion initialIsOpen={false} buttonContent="Vertices by field">
+              <EuiComboBox
+                placeholder="Select a single option"
+                singleSelection={{ asPlainText: true }}
+                options={props.fields.map(field => ({ label: field.name }))}
+                selectedOptions={selectedField ? [{ label: selectedField.name }] : []}
+                onChange={choices => {
+                  setSelectedField(props.fields.find(field => field.name === choices[0].label));
+                }}
+                isClearable
+              />
+              {selectedField && (
+                <>
+                  <EuiListGroup
+                    flush
+                    style={{
+                      maxHeight: 500,
+                      overflowY: 'auto',
+                    }}
+                    listItems={terms
+                      .filter(
+                        // filter out all vertices already added
+                        vertex =>
+                          !workspace.nodes ||
+                          !workspace.nodes.some(
+                            (workspaceNode: any) =>
+                              workspaceNode.data.term === vertex.term &&
+                              workspaceNode.data.field === vertex.field
+                          )
+                      )
+                      .map(vertex => ({
+                        label: `${vertex.field}: ${vertex.term}`,
+                        icon: <NodeIcon node={vertex} />,
+                        size: 's',
+                        onClick: async () => {
+                          await workspace.addNodes([vertex]);
+                          workspace.getTermsForField(res => {
+                            setTerms(res);
+                          }, selectedField.name);
+                        },
+                      }))}
+                  />
+
+                  <EuiButtonEmpty
+                    onClick={async () => {
+                      await workspace.addNodes(terms);
+                      workspace.getTermsForField(res => {
+                        setTerms(res);
+                      }, selectedField.name);
+                    }}
+                  >
+                    Add all
+                  </EuiButtonEmpty>
+                </>
+              )}
+            </EuiAccordion>
+          </EuiPanel>
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <EuiPanel>
+            <EuiAccordion initialIsOpen={false} buttonContent="Free vertex">
+              <EuiFieldText
+                placeholder="Field"
+                value={freeField}
+                onChange={e => {
+                  setFreeField(e.target.value);
+                }}
+              />{' '}
+              ={' '}
+              <EuiFieldText
+                placeholder="Term"
+                value={freeTerm}
+                onChange={e => {
+                  setFreeTerm(e.target.value);
                 }}
               />
-            </p>
-          ) : (
-            <p>Based on vertices in the workspace</p>
-          )}
-          <EuiListGroup
-            flush
-            style={{
-              maxHeight: 500,
-              overflowY: 'auto',
-            }}
-            listItems={significantVertices
-              .filter(
-                // filter out all vertices already added
-                vertex =>
-                  !workspace.nodes ||
-                  !workspace.nodes.some(
-                    (workspaceNode: any) =>
-                      workspaceNode.data.term === vertex.term &&
-                      workspaceNode.data.field === vertex.field
-                  )
-              )
-              .map(vertex => ({
-                label: `${vertex.field}: ${vertex.term}`,
-                icon: <NodeIcon node={vertex} />,
-                size: 's',
-                onClick: async () => {
-                  await workspace.addNodes([vertex]);
-                  await loadInterestingNodes(workspace);
-                },
-              }))}
-          />
-          <EuiButtonEmpty
-            onClick={async () => {
-              await workspace.addNodes(significantVertices);
-              await loadInterestingNodes(workspace);
-            }}
-          >
-            Add all
-          </EuiButtonEmpty>
-        </EuiPanel>
-        <EuiPanel>
-          <h3>Vertices by field</h3>
-        </EuiPanel>
-      </>
+              <EuiButtonEmpty
+                onClick={async () => {
+                  await workspace.addNodes([
+                    {
+                      color: '#aaa',
+                      icon: iconChoices[0],
+                      field: freeField,
+                      term: freeTerm,
+                      alwaysKeep: true,
+                    },
+                  ]);
+                }}
+              >
+                Add
+              </EuiButtonEmpty>
+            </EuiAccordion>
+          </EuiPanel>
+        </EuiFlexItem>
+      </EuiFlexGroup>
     </div>
   );
 }

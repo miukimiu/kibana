@@ -550,7 +550,7 @@ module.exports = (function() {
         }
       });
       const visibleNodes = self.nodes.filter(function(n) {
-        return n.parent == undefined && selectedFieldIds.has(n.data.field);
+        return n.parent == undefined && (selectedFieldIds.has(n.data.field) || n.data.alwaysKeep);
       });
       //reset then roll-up all the counts
       const allNodes = self.nodes;
@@ -1649,6 +1649,62 @@ module.exports = (function() {
         });
         if (callback) {
           callback(termIntersects);
+        }
+      });
+    };
+
+    this.getTermsForField = function(callback, field) {
+      //====================
+      const request = {
+        query: {
+          bool: {
+            must: [],
+          },
+        },
+        size: 0,
+        aggs: {
+          terms: {
+            terms: {
+              field,
+              size: 30,
+            },
+          },
+        },
+      };
+
+      if (self.filter) {
+        if (self.filter.startsWith('{')) {
+          const filterQuery = JSON.parse(self.filter);
+          request.query.bool.must.push(filterQuery);
+        } else {
+          request.query.bool.must.push({
+            query_string: {
+              query: self.filter,
+            },
+          });
+        }
+      }
+
+      searcher(self.options.indexName, request, function(data) {
+        const buckets = data.aggregations.terms.buckets;
+        const nodes = buckets.map(({ key: term }) => {
+          const node = {
+            field,
+            term,
+          };
+          for (const f in self.options.vertex_fields) {
+            const fieldDef = self.options.vertex_fields[f];
+            if (node.field == fieldDef.name) {
+              node.color = fieldDef.color;
+              node.icon = fieldDef.icon;
+              node.fieldDef = fieldDef;
+              break;
+            }
+          }
+          return node;
+        });
+        if (callback) {
+          callback(nodes);
         }
       });
     };
