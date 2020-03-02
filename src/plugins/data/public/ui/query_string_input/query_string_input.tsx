@@ -524,7 +524,6 @@ export class QueryStringInputUI extends Component<Props, State> {
           <div role="search">
             <div className="kuiLocalSearchAssistedInput">
               <EuiFieldText
-                compressed
                 placeholder={
                   this.props.placeholder ||
                   i18n.translate('data.query.queryBar.searchInputPlaceholder', {

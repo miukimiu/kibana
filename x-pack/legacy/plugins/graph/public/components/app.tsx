@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { EuiButtonIcon, EuiSpacer } from '@elastic/eui';
+import { EuiButtonIcon, EuiSpacer, EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 
 import { DataPublicPluginStart } from 'src/plugins/data/public';
 import { Provider } from 'react-redux';
@@ -70,28 +70,41 @@ export function GraphApp(props: GraphAppProps) {
               <EuiSpacer size="s" />
               <FieldManager pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} />
             </div>
-            {sidebarOpen && (
-              <AddDataPanel {...searchBarProps} filter={filter} setSidebarOpen={setSidebarOpen} />
-            )}
-            {props.isInitialized && !sidebarOpen && (
-              <EuiButtonIcon
-                className="gphGraph__openSidebar"
-                onClick={() => {
-                  setSidebarOpen(true);
-                }}
-                iconType="menuLeft"
-                style={{ position: 'absolute', top: 122, right: 5, zIndex: 999 }}
-                color="text"
-              />
-            )}
-            {!props.isInitialized && (
-              <GuidancePanel
-                noIndexPatterns={noIndexPatterns}
-                onOpenFieldPicker={() => {
-                  setPickerOpen(true);
-                }}
-              />
-            )}
+
+            <div className="gphGraph__mainWrapper">
+              <EuiFlexGroup gutterSize="none" responsive={false}>
+                <EuiFlexItem className="gphGraph__graphWrapper">
+                  {!props.isInitialized && (
+                    <GuidancePanel
+                      noIndexPatterns={noIndexPatterns}
+                      onOpenFieldPicker={() => {
+                        setPickerOpen(true);
+                      }}
+                    />
+                  )}
+                  {props.isInitialized && !sidebarOpen && (
+                    <EuiButtonIcon
+                      className="gphGraph__openSidebar"
+                      onClick={() => {
+                        setSidebarOpen(true);
+                      }}
+                      iconType="menuLeft"
+                      color="text"
+                    />
+                  )}
+                </EuiFlexItem>
+
+                {sidebarOpen && (
+                  <EuiFlexItem className="gphGraphSidebar" grow={false}>
+                    <AddDataPanel
+                      {...searchBarProps}
+                      filter={filter}
+                      setSidebarOpen={setSidebarOpen}
+                    />
+                  </EuiFlexItem>
+                )}
+              </EuiFlexGroup>
+            </div>
           </>
         </Provider>
       </KibanaContextProvider>

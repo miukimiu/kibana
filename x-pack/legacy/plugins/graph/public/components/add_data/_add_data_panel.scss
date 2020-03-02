@@ -1,0 +1,103 @@
+.gphAddData {
+  width: $sidebarWidth;
+  border-top: 1px solid $euiBorderColor;
+  background-color: $euiPageBackgroundColor;
+  overflow: hidden;
+
+  &__inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  &__body {
+    padding: $euiSize;
+
+    .euiPanel {
+      margin-bottom: $euiSize;
+    }
+    .euiText {
+      margin-bottom: $euiSizeXS;
+    }
+  }
+
+  &__editNodeName + &__editNodeName {
+    margin-top: $euiSizeS;
+  }
+
+  &__prependIcon {
+    display: flex;
+    width: $euiSize * 2;
+    align-items: center;
+    justify-content: center;
+    background: $euiColorLightShade;
+    border-right: 1px solid $euiBorderColor;
+  }
+
+  &__circleIcon {
+    display: flex;
+    width: $euiSizeL;
+    height: $euiSizeL;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+    .gphLegacyIcon {
+      margin-right: 0;
+      text-align: center;
+      display: inline-flex;
+      width: auto;
+      font-size: 12px;
+    }
+  }
+}
+
+.gphAddData__nodesArea {
+  position: relative;
+  padding: $euiSize $euiSizeS;
+  border: $euiBorderThin;
+  border-radius: $euiBorderRadius;
+  margin-top: $euiSizeS;
+  margin-bottom: $euiSize;
+
+  > span {
+    margin-right: $euiSizeXS;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+
+  span + span {
+    margin-top: $euiSizeXS;
+  }
+
+  &:hover,
+  &:focus {
+    .gphAddData__nodesArea__delete {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  &__delete {
+    @include euiBottomShadowSmall;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    margin-right: -$euiSizeS;
+    margin-top: -$euiSizeM;
+    background: $euiColorEmptyShade;
+    padding: $euiSizeXS;
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.gphAddData__nodesAddList {
+  box-sizing: border-box;
+
+  .gphAddData__circleIcon {
+    margin-right: $euiSizeS;
+  }
+}

@@ -205,11 +205,7 @@ function GuidancePanelComponent(props: GuidancePanelProps) {
     );
   }
 
-  return (
-    <EuiFlexGroup justifyContent="center">
-      <EuiFlexItem className="gphGuidancePanel">{content}</EuiFlexItem>
-    </EuiFlexGroup>
-  );
+  return <div className="gphGuidancePanel">{content}</div>;
 }
 
 export const GuidancePanel = connect(

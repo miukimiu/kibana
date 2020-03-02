@@ -1,129 +1,90 @@
+@import "@elastic/eui/src/components/header/variables";
+
+// variables
+$sidebarWidth: $euiSizeXXL * 10;
+
+.gphGraph__workspace,
+.gphGraph__workspace__inner {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.gphGraph__visContainer {
+  position: absolute;
+  top: 116px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 116px);
+  width: calc(100% - #{$sidebarWidth});
+
+  .gphVisualization {
+    height: 100%;
+  }
+}
+
 .gphGraph__bar {
   margin: 0px $euiSizeS $euiSizeS $euiSizeS;
 }
 
-.gphAddData {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  height: calc(100% - 116px);
-  background-color: $euiPageBackgroundColor;
-  width: $euiSizeXXL * 10;
-  border-top: 1px solid $euiBorderColor;
-  z-index: $euiZNavigation;
-
-  &__body {
-    padding: $euiSize;
-
-    .euiPanel {
-      margin-bottom: $euiSize;
-    }
-    .euiText {
-      margin-bottom: $euiSizeXS;
-    }
-  }
-
-  &__editNodeName + &__editNodeName {
-    margin-top: $euiSizeS;
-   }
-
-  &__prependIcon {
-    display: flex;
-    width: $euiSize * 2;
-    align-items: center;
-    justify-content: center;
-    background: $euiColorLightShade;
-    border-right: 1px solid $euiBorderColor;
-  }
-
-  &__circleIcon {
-    display: flex;
-    width: $euiSizeL;
-    height: $euiSizeL;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-
-    .gphLegacyIcon {
-      margin-right: 0;
-      text-align: center;
-      display: inline-flex;
-      width: auto;
-      font-size: 12px;
-    }
-  }
-}
-
-.gphAddData__header {
+.gphGraph__mainWrapper {
+  flex-grow: 1;
   display: flex;
- border-bottom: 1px solid $euiBorderColor;
- padding: $euiSize 0;
-
- &__title {
-  flex: 1;
-  padding: 0 $euiSize;
- }
-
- &__title,
- &__toggleIcon {
-  padding: 0 $euiSize;
- }
-}
-
-
-.gphAddData__nodesArea {
-  position: relative;
-  padding: $euiSize $euiSizeS;
-  border: $euiBorderThin;
-  border-radius: $euiBorderRadius;
-  margin-top: $euiSizeS;
-  margin-bottom: $euiSize;
-
-  > span {
-    margin-right: $euiSizeXS;
-
-    &:last-of-type {
-      margin-right: 0
-    }
-  }
-
-  span + span {
-    margin-top: $euiSizeXS;
-  }
-
-  &:hover,
-  &:focus {
-    .gphAddData__nodesArea__delete {
-      visibility: visible;
-      opacity: 1;
-    }
-  }
-
-  &__delete {
-    @include euiBottomShadowSmall;
-    position: absolute;
-    top: 50%;
-    right: 0;
-    margin-right: -$euiSizeS;
-    margin-top: -$euiSizeM;
-    background: $euiColorEmptyShade;
-    padding: $euiSizeXS;
-    visibility: hidden;
-    opacity: 0;
-  }
-}
-
-.gphAddData__nodesAddList {
-  box-sizing: border-box;
-
-  .gphAddData__circleIcon {
-    margin-right: $euiSizeS;
-  }
+  flex-direction: column;
 }
 
 .gphGraph__openSidebar {
   @include euiBottomShadowSmall;
+  position: absolute;
+  top: $euiSizeS;
+  right: $euiSizeXS;
   background: $euiColorEmptyShade;
   padding: $euiSizeXS;
 }
 
+.gphGraph__graphWrapper {
+  background-color: $euiColorEmptyShade;
+  position: relative;
+}
+
+.gphGraphSidebar {
+  background-color: $euiPageBackgroundColor;
+  width: $sidebarWidth;
+  overflow: hidden;
+
+  > * {
+    width: $sidebarWidth;
+  }
+
+  &__header {
+    display: flex;
+    border-bottom: 1px solid $euiBorderColor;
+    padding: $euiSize 0;
+  }
+  &__title {
+    flex: 1;
+    padding: 0 $euiSize;
+  }
+
+  &__title,
+  &__toggleIcon {
+    padding: 0 $euiSize;
+  }
+
+  &__body {
+    @include euiScrollBar;
+    padding-bottom: 0; /* 1 */
+    flex-grow: 1;
+    flex-basis: 1px; /* Fixes scrolling for Firefox */
+    overflow-y: auto;
+  }
+
+  &__bodyOverflow {
+    padding: $euiSize;
+
+    > *:last-child {
+      margin-bottom: $euiSize; /* 1 */
+    }
+  }
+}
