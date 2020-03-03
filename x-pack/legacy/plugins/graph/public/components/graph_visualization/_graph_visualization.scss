@@ -4,10 +4,8 @@
   flex-direction: column;
 
   &__toolbar {
-
   }
   &__toolbarButton {
-    
   }
 }
 
@@ -106,5 +104,21 @@
   &:enabled:hover,
   &:enabled:focus {
     @include euiBottomShadow;
+  }
+}
+
+.gphVisualizationPopover {
+  &__description {
+    border-bottom: 1px solid $euiBorderColor;
+    padding-bottom: $euiSizeS;
+    margin-bottom: $euiSizeS;
+  }
+}
+
+.gphVisualizationToolTipAnchor {
+  margin-right: $euiSizeS;
+
+  &:last-of-type {
+    margin-right: 0;
   }
 }

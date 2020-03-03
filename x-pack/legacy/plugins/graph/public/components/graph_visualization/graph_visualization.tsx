@@ -18,11 +18,12 @@ import {
   EuiFormRow,
   EuiListGroup,
   EuiIcon,
-  EuiPanel,
+  EuiToolTip,
   EuiContextMenuPanel,
   EuiContextMenuItem,
   EuiFlexGroup,
   EuiFlexItem,
+  EuiText,
 } from '@elastic/eui';
 import { WorkspaceNode, WorkspaceEdge, WorkspaceField, UrlTemplate } from '../../types';
 import { makeNodeId } from '../../services/persistence';
@@ -33,7 +34,6 @@ import {
   templatesSelector,
   updateMetaData,
 } from '../../state_management';
-import { KibanaContextProvider } from '../../../../../../../src/plugins/kibana_react/public/context';
 import { urlTemplateRegex } from '../../helpers/url_template';
 import { LegacyIcon } from '../legacy_icon';
 import { VennDiagram } from '../venn_diagram';
@@ -420,7 +420,12 @@ function GraphVisualizationComponent({
                               setSelectedEdge(undefined);
                             }}
                           >
-                            <small>Connection summary</small>
+                            <div className="">
+                              <EuiText size="s">
+                                <h4>Connection summary</h4>
+                              </EuiText>
+                            </div>
+
                             {edgeSummary ? (
                               <>
                                 <div style={{ textAlign: 'center' }}>
@@ -503,6 +508,7 @@ function GraphVisualizationComponent({
                         y={node.ky}
                       >
                         <EuiPopover
+                          className="gphVisualizationPopover"
                           anchorPosition="upCenter"
                           button={<span />}
                           isOpen={!popoverForceClosed}
@@ -516,64 +522,109 @@ function GraphVisualizationComponent({
                             // notifyAngular();
                           }}
                         >
-                          <small>
-                            {clientWorkspace.selectedNodes.length}{' '}
-                            {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'}{' '}
-                            selected
-                          </small>
-                          <br />
-                          <EuiButtonIcon
-                            aria-label="add data"
-                            iconType="graphApp"
-                            disabled={mode === 'data'}
-                            onClick={() => {
-                              dataMode();
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="edit"
-                            iconType="pencil"
-                            disabled={mode === 'edit'}
-                            onClick={() => {
-                              editMode();
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="group"
-                            iconType="submodule"
-                            disabled={
-                              clientWorkspace.selectedNodes.length === 1 &&
-                              clientWorkspace.selectedNodes[0].numChildren === 0
-                            }
-                            onClick={() => {
-                              setForceClosedPopover(true);
-                              editMode();
-                              if (clientWorkspace.selectedNodes.length === 1) {
-                                clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
-                              } else {
-                                clientWorkspace.groupSelections(
-                                  clientWorkspace.selectedNodes[
-                                    clientWorkspace.selectedNodes.length - 1
-                                  ]
-                                );
+                          <div className="gphVisualizationPopover__description">
+                            <EuiText size="s">
+                              <p>
+                                {' '}
+                                {clientWorkspace.selectedNodes.length}{' '}
+                                {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'}{' '}
+                                selected
+                              </p>
+                            </EuiText>
+                          </div>
+
+                          <EuiToolTip
+                            position="top"
+                            content="Add data"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="add data"
+                              iconType="graphApp"
+                              disabled={mode === 'data'}
+                              onClick={() => {
+                                dataMode();
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Edit"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="edit"
+                              iconType="pencil"
+                              disabled={mode === 'edit'}
+                              onClick={() => {
+                                editMode();
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Group"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="group"
+                              iconType="submodule"
+                              disabled={
+                                clientWorkspace.selectedNodes.length === 1 &&
+                                clientWorkspace.selectedNodes[0].numChildren === 0
                               }
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="drilldown"
-                            iconType="link"
-                            onClick={e => {
-                              e.stopPropagation();
-                              setShowDrilldown(!showDrilldown);
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="remove"
-                            iconType="trash"
-                            onClick={() => {
-                              clientWorkspace.deleteSelection();
-                            }}
-                          />
+                              onClick={() => {
+                                setForceClosedPopover(true);
+                                editMode();
+                                if (clientWorkspace.selectedNodes.length === 1) {
+                                  clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
+                                } else {
+                                  clientWorkspace.groupSelections(
+                                    clientWorkspace.selectedNodes[
+                                      clientWorkspace.selectedNodes.length - 1
+                                    ]
+                                  );
+                                }
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Drilldown"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="drilldown"
+                              iconType="documents"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setShowDrilldown(!showDrilldown);
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Group"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="remove"
+                              iconType="trash"
+                              onClick={() => {
+                                clientWorkspace.deleteSelection();
+                              }}
+                            />
+                          </EuiToolTip>
                           {showDrilldown && (
                             <EuiListGroup
                               listItems={urlTemplates.map(template => ({
@@ -581,7 +632,7 @@ function GraphVisualizationComponent({
                                 icon: template.icon ? (
                                   <LegacyIcon icon={template.icon} />
                                 ) : (
-                                  <EuiIcon iconType="blank" />
+                                  <EuiIcon type="document" />
                                 ),
                                 size: 's',
                                 onClick: () => {
