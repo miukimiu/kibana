@@ -165,10 +165,6 @@ function AddDataPanelComponent(props: any) {
                       <EuiListGroup
                         flush
                         className="gphAddData__nodesAddList"
-                        style={{
-                          maxHeight: 300,
-                          overflowY: 'auto',
-                        }}
                         listItems={significantVertices
                           .filter(
                             // filter out all vertices already added
@@ -232,10 +228,6 @@ function AddDataPanelComponent(props: any) {
                           <EuiListGroup
                             flush
                             className="gphAddData__nodesAddList"
-                            style={{
-                              maxHeight: 300,
-                              overflowY: 'auto',
-                            }}
                             listItems={terms
                               .filter(
                                 // filter out all vertices already added

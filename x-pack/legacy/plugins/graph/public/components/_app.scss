@@ -24,7 +24,8 @@ $sidebarWidth: $euiSizeXXL * 10;
 }
 
 .gphGraph__bar {
-  margin: 0px $euiSizeS $euiSizeS $euiSizeS;
+  padding: 0px $euiSizeS $euiSizeS $euiSizeS;
+  border-bottom: 1px solid $euiBorderColor;
 }
 
 .gphGraph__mainWrapper {
@@ -50,6 +51,7 @@ $sidebarWidth: $euiSizeXXL * 10;
 .gphGraphSidebar {
   background-color: $euiPageBackgroundColor;
   width: $sidebarWidth;
+  border-left: 1px solid $euiBorderColor;
   overflow: hidden;
 
   > * {

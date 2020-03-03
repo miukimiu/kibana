@@ -41,6 +41,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    flex-shrink: 0;
 
     .gphLegacyIcon {
       margin-right: 0;
@@ -95,7 +96,10 @@
 }
 
 .gphAddData__nodesAddList {
+  @include euiScrollBar;
   box-sizing: border-box;
+  max-height: 300px;
+  overflow-y: auto;
 
   .gphAddData__circleIcon {
     margin-right: $euiSizeS;
