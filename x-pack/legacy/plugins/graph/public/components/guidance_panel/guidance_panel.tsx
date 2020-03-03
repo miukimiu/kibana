@@ -113,7 +113,7 @@ function GuidancePanelComponent(props: GuidancePanelProps) {
   let content = (
     <EuiPanel data-test-subj="gphGuidancePanel" paddingSize="none">
       <div className="gphGuidancePanel__mainSection">
-        <EuiFlexGroup direction="row" alignItems="center" gutterSize="xl">
+        <EuiFlexGroup direction="row" alignItems="center" gutterSize="l">
           <EuiFlexItem className="gphGuidancePanel__mainContent">
             <EuiTitle size="s">
               <h2 id="graphHeading">
