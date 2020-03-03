@@ -110,14 +110,17 @@ function AddDataPanelComponent(props: any) {
                     >
                       <EuiSpacer size="s" />
                       {(query || !props.selectedNodes || !props.selectedNodes.length > 0) && (
-                        <SignificantSearchBar
-                          {...props}
-                          onQuerySubmit={(query: any) => {
-                            setQuery(query);
-                          }}
-                        />
+                        <>
+                          <SignificantSearchBar
+                            {...props}
+                            onQuerySubmit={(query: any) => {
+                              setQuery(query);
+                            }}
+                          />
+                          <EuiSpacer size="s" />
+                        </>
                       )}
-                      <EuiSpacer size="s" />
+
                       {query ? (
                         <p>
                           Based on current search query{' '}
@@ -211,6 +214,7 @@ function AddDataPanelComponent(props: any) {
                         </EuiTitle>
                       }
                     >
+                      <EuiSpacer size="s" />
                       <EuiComboBox
                         placeholder="Select a single option"
                         singleSelection={{ asPlainText: true }}
@@ -279,6 +283,7 @@ function AddDataPanelComponent(props: any) {
                         </EuiTitle>
                       }
                     >
+                      <EuiSpacer size="s" />
                       <EuiFieldText
                         placeholder="Field"
                         value={freeField}
