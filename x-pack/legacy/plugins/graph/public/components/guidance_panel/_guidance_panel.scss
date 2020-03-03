@@ -1,8 +1,38 @@
 .gphGuidancePanel {
-  max-width: 580px;
+  max-width: $euiSizeXL * 20;
   align-self: center;
   margin-top: $euiSizeXL;
 
+  &__mainSection {
+    padding: $euiSizeL;
+  }
+  &__illustration {
+    padding: $euiSizeL;
+  }
+  &__moreSection {
+    background: $euiColorLightestShade;
+    padding: $euiSizeM $euiSizeL;
+
+    h2 {
+      padding-bottom: $euiSizeM;
+    }
+    &__list {
+      display: flex;
+
+      li {
+        display: flex;
+        padding: 0 $euiSizeL;
+        align-items: center;
+
+        > span {
+          padding-left: $euiSizeS;
+        }
+        &:first-child {
+          padding-left: 0;
+        }
+      }
+    }
+  }
 }
 
 .gphGuidancePanel__list {
@@ -12,10 +42,8 @@
 }
 
 .gphGuidancePanel__item {
-  display: block;
-  max-width: 420px;
+  display: flex;
   position: relative;
-  padding-left: $euiSizeXL;
   margin-bottom: $euiSizeL;
 }
 
@@ -28,16 +56,31 @@
 }
 
 .gphGuidancePanel__itemIcon {
-  position: absolute;
-  left: 0;
-  top: -($euiSizeXS / 2);
+  display: inline-flex;  
   width: $euiSizeL;
   height: $euiSizeL;
   padding: $euiSizeXS;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  line-height: $euiSizeL;
+  flex-grow: 0;
+  font-size: $euiSizeM;
+  font-weight: $euiFontWeightMedium;
+  border: 1px solid $euiColorPrimary;
+  margin-right: $euiSizeS;
 
-  &--done {
-    background-color: $euiColorSecondary;
+  &--active {
+    background-color: $euiColorPrimary;
     color: $euiColorEmptyShade;
-    border-radius: 50%;
   }
+  &--isInactive {
+    background-color: transparent;
+    border-color: $euiColorDarkShade;
+    color: $euiColorDarkShade;
+  }
+}
+
+.gphGuidancePanel__itemText {
+  flex: 1;
 }

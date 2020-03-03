@@ -14,6 +14,8 @@ import {
   EuiLink,
   EuiCallOut,
   EuiScreenReaderOnly,
+  EuiTitle,
+  EuiSpacer,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import classNames from 'classnames';
@@ -32,6 +34,8 @@ import { openSourceModal } from '../../services/source_modal';
 
 import { useKibana } from '../../../../../../../src/plugins/kibana_react/public';
 
+import { GuidancePanelIllustration } from './guidance_panel_illustration';
+
 export interface GuidancePanelProps {
   onFillWorkspace: () => void;
   onOpenFieldPicker: () => void;
@@ -42,9 +46,11 @@ export interface GuidancePanelProps {
 }
 
 function ListItem({
+  step,
   children,
   state,
 }: {
+  step: number;
   state: 'done' | 'active' | 'disabled';
   children: ReactNode;
 }) {
@@ -56,17 +62,31 @@ function ListItem({
       aria-disabled={state === 'disabled'}
       aria-current={state === 'active' ? 'step' : undefined}
     >
-      {state !== 'disabled' && (
+      {state !== 'disabled' && state === 'active' && (
         <span
-          className={classNames('gphGuidancePanel__itemIcon', {
-            'gphGuidancePanel__itemIcon--done': state === 'done',
-          })}
+          className="gphGuidancePanel__itemIcon gphGuidancePanel__itemIcon--active"
           aria-hidden={true}
         >
-          <EuiIcon type={state === 'active' ? 'sortRight' : 'check'} />
+          {step}
         </span>
       )}
-      <EuiText>{children}</EuiText>
+      {state !== 'disabled' && state === 'done' && (
+        <span
+          className="gphGuidancePanel__itemIcon gphGuidancePanel__itemIcon--active"
+          aria-hidden={true}
+        >
+          <EuiIcon type="check" />
+        </span>
+      )}
+      {state === 'disabled' && (
+        <span
+          className="gphGuidancePanel__itemIcon gphGuidancePanel__itemIcon--isInactive"
+          aria-hidden={true}
+        >
+          {step}
+        </span>
+      )}
+      <EuiText className="gphGuidancePanel__itemText">{children}</EuiText>
     </li>
   );
 }
@@ -91,57 +111,78 @@ function GuidancePanelComponent(props: GuidancePanelProps) {
   };
 
   let content = (
-    <EuiPanel data-test-subj="graphGuidancePanel">
-      <EuiFlexGroup direction="column" alignItems="center">
-        <EuiFlexItem grow={false}>
-          <EuiIcon type="graphApp" size="xxl" />
-        </EuiFlexItem>
-        <EuiFlexItem grow={false}>
-          <EuiText>
-            <h1 id="graphHeading">
-              {i18n.translate('xpack.graph.guidancePanel.title', {
-                defaultMessage: 'Three steps to your graph',
-              })}
-            </h1>
-          </EuiText>
-        </EuiFlexItem>
-        <EuiFlexItem grow={false}>
-          <ol className="gphGuidancePanel__list" aria-labelledby="graphHeading">
-            <ListItem state={hasDatasource ? 'done' : 'active'}>
-              <EuiLink onClick={onOpenDatasourcePicker}>
-                {i18n.translate(
-                  'xpack.graph.guidancePanel.datasourceItem.indexPatternButtonLabel',
-                  {
-                    defaultMessage: 'Select a data source.',
-                  }
-                )}
-              </EuiLink>
-            </ListItem>
-            <ListItem state={hasFields ? 'done' : hasDatasource ? 'active' : 'disabled'}>
-              <EuiLink onClick={onOpenFieldPicker} disabled={!hasFields && !hasDatasource}>
-                {i18n.translate('xpack.graph.guidancePanel.fieldsItem.fieldsButtonLabel', {
-                  defaultMessage: 'Add fields.',
+    <EuiPanel data-test-subj="gphGuidancePanel" paddingSize="none">
+      <div className="gphGuidancePanel__mainSection">
+        <EuiFlexGroup direction="row" alignItems="center" gutterSize="xl">
+          <EuiFlexItem className="gphGuidancePanel__mainContent">
+            <EuiTitle size="s">
+              <h2 id="graphHeading">
+                {i18n.translate('xpack.graph.guidancePanel.title', {
+                  defaultMessage: 'Three steps to your graph',
                 })}
-              </EuiLink>
-            </ListItem>
-            <ListItem state={hasFields ? 'active' : 'disabled'}>
-              <FormattedMessage
-                id="xpack.graph.guidancePanel.nodesItem.description"
-                defaultMessage="Pick suggestions from the right to start exploring. Don't know where to start? {topTerms}."
-                values={{
-                  topTerms: (
-                    <EuiLink onClick={onFillWorkspace} disabled={!hasFields}>
-                      {i18n.translate('xpack.graph.guidancePanel.nodesItem.topTermsButtonLabel', {
-                        defaultMessage: 'Graph the top terms',
-                      })}
-                    </EuiLink>
-                  ),
-                }}
-              />
-            </ListItem>
-          </ol>
-        </EuiFlexItem>
-      </EuiFlexGroup>
+              </h2>
+            </EuiTitle>
+            <EuiSpacer size="l" />
+            <ol className="gphGuidancePanel__list" aria-labelledby="graphHeading">
+              <ListItem state={hasDatasource ? 'done' : 'active'} step={1}>
+                <EuiLink onClick={onOpenDatasourcePicker}>
+                  {i18n.translate(
+                    'xpack.graph.guidancePanel.datasourceItem.indexPatternButtonLabel',
+                    {
+                      defaultMessage: 'Select a data source.',
+                    }
+                  )}
+                </EuiLink>
+              </ListItem>
+              <ListItem state={hasFields ? 'done' : hasDatasource ? 'active' : 'disabled'} step={2}>
+                <EuiLink onClick={onOpenFieldPicker} disabled={!hasFields && !hasDatasource}>
+                  {i18n.translate('xpack.graph.guidancePanel.fieldsItem.fieldsButtonLabel', {
+                    defaultMessage: 'Add fields.',
+                  })}
+                </EuiLink>
+              </ListItem>
+              <ListItem state={hasFields ? 'active' : 'disabled'} step={3}>
+                <FormattedMessage
+                  id="xpack.graph.guidancePanel.nodesItem.description"
+                  defaultMessage="Add vertices from the right panel to start exploring. Don't know where to start? {topTerms}."
+                  values={{
+                    topTerms: (
+                      <EuiLink onClick={onFillWorkspace} disabled={!hasFields}>
+                        {i18n.translate('xpack.graph.guidancePanel.nodesItem.topTermsButtonLabel', {
+                          defaultMessage: 'Graph the top terms',
+                        })}
+                      </EuiLink>
+                    ),
+                  }}
+                />
+              </ListItem>
+            </ol>
+          </EuiFlexItem>
+          <EuiFlexItem grow={false} className="gphGuidancePanel__illustration">
+            <GuidancePanelIllustration />
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </div>
+
+      <div className="gphGuidancePanel__moreSection">
+        <EuiFlexGroup direction="row" className="gphGuidancePanel__moreSection">
+          <EuiFlexItem>
+            <EuiTitle size="xs">
+              <h2>Want to learn more?</h2>
+            </EuiTitle>
+            <ul className="gphGuidancePanel__moreSection__list">
+              <li>
+                <EuiIcon type="videoPlayer" />
+                <span>Watch video</span>
+              </li>
+              <li>
+                <EuiIcon type="training" />
+                <span>Read documentation</span>
+              </li>
+            </ul>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </div>
     </EuiPanel>
   );
 
