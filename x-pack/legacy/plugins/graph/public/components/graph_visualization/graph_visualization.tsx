@@ -21,6 +21,8 @@ import {
   EuiPanel,
   EuiContextMenuPanel,
   EuiContextMenuItem,
+  EuiFlexGroup,
+  EuiFlexItem,
 } from '@elastic/eui';
 import { WorkspaceNode, WorkspaceEdge, WorkspaceField, UrlTemplate } from '../../types';
 import { makeNodeId } from '../../services/persistence';
@@ -173,175 +175,196 @@ function GraphVisualizationComponent({
 
   return (
     <>
-      <div style={{ position: 'absolute', top: 10, left: 10 }}>
-        <EuiPopover
-          id="popover"
-          anchorPosition="rightUp"
-          button={
-            <EuiPanel paddingSize="xs">
-              <EuiButtonIcon
-                iconType="filter"
-                aria-label="filter connections"
-                onClick={() => setOpen(!open)}
-              />
-            </EuiPanel>
-          }
-          isOpen={open}
-          closePopover={() => setOpen(false)}
+      <div className="gphVisualization__toolbar">
+        <EuiFlexGroup
+          responsive={false}
+          direction="column"
+          alignItems="flexStart"
+          gutterSize="none"
+          className="gphVisualization__toolbarButtonGroup"
         >
-          <EuiFormRow label="Minimum number of connections">
-            <EuiRange
-              value={minDocCount}
-              min={0}
-              max={maxDocCount}
-              onChange={e => {
-                setMinDocCount(e.target.valueAsNumber);
-                updateLayout(clientWorkspace, e.target.valueAsNumber);
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="plusInCircleFilled"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.scale(zoom.scale() * 1.1);
+
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
               }}
-              showInput
             />
-          </EuiFormRow>
-        </EuiPopover>
-      </div>
-      <div style={{ position: 'absolute', top: 40, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="plusInCircle"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="minusInCircleFilled"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.scale(zoom.scale() * 1.1);
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.scale(zoom.scale() * 0.9);
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 70, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="minusInCircle"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
+              }}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.scale(zoom.scale() * 0.9);
+        <EuiFlexGroup responsive={false} direction="column" alignItems="flexStart" gutterSize="s">
+          <EuiFlexItem>
+            <EuiButtonIcon
+              className="gphVisualization__toolbarButton"
+              color="text"
+              iconType="crosshairs"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 100, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="bullseye"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.translate([0, 0]);
+                zoom.scale(1);
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.translate([0, 0]);
-              zoom.scale(1);
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
+              }}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 130, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="editorUndo"
-            aria-label="filter connections"
-            onClick={() => clientWorkspace.undo()}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 160, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="editorRedo"
-            aria-label="filter connections"
-            onClick={() => clientWorkspace.redo()}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 200, left: 10 }}>
-        <EuiPopover
-          id="popover"
-          anchorPosition="rightUp"
-          button={
-            <EuiPanel paddingSize="xs">
-              <EuiButtonIcon
-                iconType="partial"
-                aria-label="filter connections"
-                onClick={() => setSelectionOpen(!selectionOpen)}
-              />
-            </EuiPanel>
-          }
-          isOpen={selectionOpen}
-          closePopover={() => setSelectionOpen(false)}
+        <EuiFlexGroup
+          responsive={false}
+          direction="column"
+          alignItems="flexStart"
+          gutterSize="none"
+          className="gphVisualization__toolbarButtonGroup"
         >
-          <EuiContextMenuPanel title="Selections">
-            <EuiContextMenuItem
-              key="all"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectAll();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="editorUndo"
+              aria-label="filter connections"
+              onClick={() => clientWorkspace.undo()}
+            />
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="editorRedo"
+              aria-label="filter connections"
+              onClick={() => clientWorkspace.redo()}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
+
+        <EuiFlexGroup responsive={false} direction="column" alignItems="flexStart" gutterSize="s">
+          <EuiFlexItem>
+            <EuiPopover
+              id="popover"
+              anchorPosition="rightUp"
+              button={
+                <EuiButtonIcon
+                  className="gphVisualization__toolbarButton"
+                  color="text"
+                  iconType="partial"
+                  aria-label="filter connections"
+                  onClick={() => setSelectionOpen(!selectionOpen)}
+                />
+              }
+              isOpen={selectionOpen}
+              closePopover={() => setSelectionOpen(false)}
             >
-              All
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="none"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectNone();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
+              <EuiContextMenuPanel title="Selections">
+                <EuiContextMenuItem
+                  key="all"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectAll();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  All
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="none"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectNone();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  None
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="invert"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectInvert();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  Invert
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="linked"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectNeighbours();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  Linked
+                </EuiContextMenuItem>
+              </EuiContextMenuPanel>
+            </EuiPopover>
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiPopover
+              id="popover"
+              anchorPosition="rightUp"
+              button={
+                <EuiButtonIcon
+                  className="gphVisualization__toolbarButton"
+                  color="text"
+                  iconType="filter"
+                  aria-label="filter connections"
+                  onClick={() => setOpen(!open)}
+                />
+              }
+              isOpen={open}
+              closePopover={() => setOpen(false)}
             >
-              None
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="invert"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectInvert();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
-            >
-              Invert
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="linked"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectNeighbours();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
-            >
-              Linked
-            </EuiContextMenuItem>
-          </EuiContextMenuPanel>
-        </EuiPopover>
+              <EuiFormRow label="Minimum number of connections">
+                <EuiRange
+                  value={minDocCount}
+                  min={0}
+                  max={maxDocCount}
+                  onChange={e => {
+                    setMinDocCount(e.target.valueAsNumber);
+                    updateLayout(clientWorkspace, e.target.valueAsNumber);
+                  }}
+                  showInput
+                />
+              </EuiFormRow>
+            </EuiPopover>
+          </EuiFlexItem>
+        </EuiFlexGroup>
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"

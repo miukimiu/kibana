@@ -95,13 +95,11 @@ export function GraphApp(props: GraphAppProps) {
                 </EuiFlexItem>
 
                 {sidebarOpen && (
-                  <EuiFlexItem className="gphGraphSidebar" grow={false}>
-                    <AddDataPanel
-                      {...searchBarProps}
-                      filter={filter}
-                      setSidebarOpen={setSidebarOpen}
-                    />
-                  </EuiFlexItem>
+                  <AddDataPanel
+                    {...searchBarProps}
+                    filter={filter}
+                    setSidebarOpen={setSidebarOpen}
+                  />
                 )}
               </EuiFlexGroup>
             </div>
