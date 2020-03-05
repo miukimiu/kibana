@@ -113,6 +113,27 @@
     padding-bottom: $euiSizeS;
     margin-bottom: $euiSizeS;
   }
+  &__edgeSummary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+  &__edgeSummaryText,
+  &__fieldTerm {
+    margin-top: $euiSizeXS;
+  }
+  &__fieldTerm {
+    span:first-child {
+      margin-right:  $euiSizeXS;
+    }
+    span:last-child {
+      margin-left:  $euiSizeXS;
+    }
+  }
+  &__edgeSummaryOverlap {
+    margin: 0 $euiSizeS;
+  }
 }
 
 .gphVisualizationToolTipAnchor {

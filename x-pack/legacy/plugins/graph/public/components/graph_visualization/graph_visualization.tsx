@@ -408,6 +408,7 @@ function GraphVisualizationComponent({
                           y={(edge.topSrc.ky + edge.topTarget.ky) / 2}
                         >
                           <EuiPopover
+                            className="gphVisualizationPopover"
                             anchorPosition="upCenter"
                             button={<span />}
                             isOpen={!popoverForceClosed}
@@ -420,28 +421,38 @@ function GraphVisualizationComponent({
                               setSelectedEdge(undefined);
                             }}
                           >
-                            <div className="">
+                            <div className="gphVisualizationPopover__description">
                               <EuiText size="s">
                                 <h4>Connection summary</h4>
                               </EuiText>
                             </div>
 
                             {edgeSummary ? (
-                              <>
-                                <div style={{ textAlign: 'center' }}>
-                                  <VennDiagram
-                                    leftValue={edgeSummary.v1}
-                                    rightValue={edgeSummary.v2}
-                                    overlap={edgeSummary.overlap}
-                                  />
-                                  <small>
-                                    {edgeSummary.v1} ({edgeSummary.overlap}) {edgeSummary.v2}
-                                    <br />
-                                    {edge.topSrc.data.field}: {edge.topSrc.data.term}{' '}
+                              <div className="gphVisualizationPopover__edgeSummary">
+                                <VennDiagram
+                                  leftValue={edgeSummary.v1}
+                                  rightValue={edgeSummary.v2}
+                                  overlap={edgeSummary.overlap}
+                                />
+                                <EuiText
+                                  className="gphVisualizationPopover__edgeSummaryText"
+                                  size="s"
+                                >
+                                  <span>{edgeSummary.v1}</span>
+                                  <span className="gphVisualizationPopover__edgeSummaryOverlap">
+                                    ({edgeSummary.overlap})
+                                  </span>
+                                  <span>{edgeSummary.v2}</span>
+                                </EuiText>
+                                <EuiText className="gphVisualizationPopover__fieldTerm" size="xs">
+                                  <span>
+                                    {edge.topSrc.data.field}: {edge.topSrc.data.term}
+                                  </span>
+                                  <span>
                                     {edge.topTarget.data.field}: {edge.topTarget.data.term}
-                                  </small>
-                                </div>
-                              </>
+                                  </span>
+                                </EuiText>
+                              </div>
                             ) : (
                               'loading...'
                             )}
