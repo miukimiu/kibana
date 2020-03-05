@@ -38,6 +38,18 @@
       }
     }
   }
+  #graph-illustration_center {
+    transform-origin: 152px 138px;
+    animation: spin 12s ease-in-out infinite;
+  }
+  #node-and-con-green-1 {
+    transform-origin: 128px 199px;
+    animation: inverseArmMovement 12s ease-in-out infinite;
+  } 
+  #node-and-con-green-2 {
+    transform-origin: 84px 106px;
+    animation: armMovement 12s ease-in-out infinite;
+  }
 }
 
 .gphGuidancePanel__list {
@@ -88,4 +100,32 @@
 
 .gphGuidancePanel__itemText {
   flex: 1;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes armMovement {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+@keyframes inverseArmMovement {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-30deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
 }

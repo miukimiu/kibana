@@ -144,12 +144,12 @@ function GuidancePanelComponent(props: GuidancePanelProps) {
               <ListItem state={hasFields ? 'active' : 'disabled'} step={3}>
                 <FormattedMessage
                   id="xpack.graph.guidancePanel.nodesItem.description"
-                  defaultMessage="Add vertices from the right panel to start exploring. Don't know where to start? {topTerms}."
+                  defaultMessage="Add vertices from the right panel to start exploring or {topTerms}."
                   values={{
                     topTerms: (
                       <EuiLink onClick={onFillWorkspace} disabled={!hasFields}>
                         {i18n.translate('xpack.graph.guidancePanel.nodesItem.topTermsButtonLabel', {
-                          defaultMessage: 'Graph the top terms',
+                          defaultMessage: 'graph the top terms',
                         })}
                       </EuiLink>
                     ),

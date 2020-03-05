@@ -10,7 +10,7 @@ import {
   EuiButtonIcon,
   EuiListGroup,
   EuiPanel,
-  EuiToolTip,
+  EuiIcon,
   EuiComboBox,
   EuiAccordion,
   EuiFlexGroup,
@@ -20,13 +20,12 @@ import {
   EuiSpacer,
   EuiText,
   EuiTextAlign,
+  EuiListGroupItem,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
-import classNames from 'classnames';
 import { GraphState, metaDataSelector, selectedFieldsSelector } from '../../state_management';
 import { SignificantSearchBar } from './significant_search_bar';
 import { EditNodesPanel, NodeIcon } from '../edit_nodes_panel';
-import { LegacyIcon } from '../legacy_icon';
 import { WorkspaceField } from '../../types';
 import { iconChoices } from '../../helpers/style_choices';
 
@@ -77,6 +76,16 @@ function AddDataPanelComponent(props: any) {
   if (props.mode === 'edit') {
     return <EditNodesPanel {...props} />;
   }
+  const significantVerticesNodesList = significantVertices.filter(
+    // filter out all vertices already added
+    vertex =>
+      !workspace.nodes ||
+      !workspace.nodes.some(
+        (workspaceNode: any) =>
+          workspaceNode.data.term === vertex.term && workspaceNode.data.field === vertex.field
+      )
+  );
+
   return (
     <EuiFlexItem className="gphGraphSidebar" grow={false}>
       <EuiFlexGroup direction="column" gutterSize="none">
@@ -104,7 +113,7 @@ function AddDataPanelComponent(props: any) {
                       initialIsOpen={true}
                       buttonContent={
                         <EuiTitle size="xs">
-                          <h4>Significant vertices</h4>
+                          <h4>Add Significant vertices</h4>
                         </EuiTitle>
                       }
                     >
@@ -117,7 +126,7 @@ function AddDataPanelComponent(props: any) {
                               setQuery(query);
                             }}
                           />
-                          <EuiSpacer size="s" />
+                          <EuiSpacer size="m" />
                         </>
                       )}
 
@@ -138,18 +147,18 @@ function AddDataPanelComponent(props: any) {
                               Based on current selection of {props.selectedNodes.length} vertices:
                             </p>
                           </EuiText>
-                          <div className="gphAddData__nodesArea">
+                          {/* <div className="gphAddData__selectedNodesArea">
                             {props.selectedNodes.map(node => (
                               <EuiToolTip
                                 position="top"
-                                className="gphAddData__nodesArea__icon"
+                                className="gphAddData__selectedNodesArea__icon"
                                 content={`${node.data.field}: ${node.data.term}`}
                               >
                                 <NodeIcon node={node} />
                               </EuiToolTip>
                             ))}
                             <EuiButtonIcon
-                              className="gphAddData__nodesArea__delete"
+                              className="gphAddData__selectedNodesArea__delete"
                               aria-label="remove"
                               iconType="trash"
                               color="danger"
@@ -158,39 +167,50 @@ function AddDataPanelComponent(props: any) {
                                 props.notifyAngular();
                               }}
                             />
-                          </div>
+                          </div> */}
                         </>
                       ) : (
-                        <EuiText>
+                        <EuiText size="m">
                           <p>Based on vertices in the workspace</p>
                         </EuiText>
                       )}
-                      <EuiListGroup
-                        flush
-                        className="gphAddData__nodesAddList"
-                        listItems={significantVertices
-                          .filter(
-                            // filter out all vertices already added
-                            vertex =>
-                              !workspace.nodes ||
-                              !workspace.nodes.some(
-                                (workspaceNode: any) =>
-                                  workspaceNode.data.term === vertex.term &&
-                                  workspaceNode.data.field === vertex.field
-                              )
-                          )
-                          .map(vertex => ({
-                            label: `${vertex.field}: ${vertex.term}`,
-                            icon: <NodeIcon node={vertex} />,
-                            size: 's',
-                            onClick: async () => {
-                              await workspace.addNodes([vertex]);
-                              await loadInterestingNodes(workspace);
-                            },
-                          }))}
-                      />
+
+                      <EuiSpacer size="xs" />
+
+                      {significantVerticesNodesList.length > 0 ? (
+                        <EuiListGroup className="gphAddData__nodesAddList">
+                          {significantVerticesNodesList.map(vertex => (
+                            <EuiListGroupItem
+                              key={`${vertex.field}-${vertex.term}`}
+                              className="gphAddData__nodesAddList__item"
+                              onClick={async () => {
+                                await workspace.addNodes([vertex]);
+                                await loadInterestingNodes(workspace);
+                              }}
+                              label={
+                                <>
+                                  <NodeIcon node={vertex} />
+                                  <EuiText size="s" className="gphAddData__nodesAddList__itemText">
+                                    <span>{`${vertex.field}: ${vertex.term}`}</span>
+                                  </EuiText>
+                                  <EuiIcon
+                                    type="plusInCircleFilled"
+                                    className="gphAddData__nodesAddList__itemIcon"
+                                  />
+                                </>
+                              }
+                            />
+                          ))}
+                        </EuiListGroup>
+                      ) : (
+                        <div className="gphAddData__nodesAddList">No vertices to add</div>
+                      )}
+
+                      <EuiSpacer size="s" />
+
                       <EuiTextAlign textAlign="center">
                         <EuiButtonEmpty
+                          disabled={significantVerticesNodesList.length < 1}
                           iconType="plusInCircleFilled"
                           className="gphAddData__ce"
                           onClick={async () => {

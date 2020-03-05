@@ -67,7 +67,7 @@ export const GuidancePanelIllustration = () => (
         <path id="Rectangle_5" fill="#FEC514" d="M110 247h12v12h-12z" />
       </g>
       <g id="graph-illustration">
-        <g d="node-and-con-green-2">
+        <g id="node-and-con-green-2">
           <path
             id="Rectangle 243"
             transform="scale(1 -1) rotate(10 948.718 433.972)"

@@ -53,7 +53,7 @@
   }
 }
 
-.gphAddData__nodesArea {
+.gphAddData__selectedNodesArea {
   position: relative;
   padding: $euiSize $euiSizeS;
   border: $euiBorderThin;
@@ -75,7 +75,7 @@
 
   &:hover,
   &:focus {
-    .gphAddData__nodesArea__delete {
+    .gphAddData__selectedNodesArea__delete {
       visibility: visible;
       opacity: 1;
     }
@@ -97,11 +97,39 @@
 
 .gphAddData__nodesAddList {
   @include euiScrollBar;
+  background: $euiColorLightestShade;
+  padding: $euiSizeS;
+  border-radius: $euiBorderRadius;
   box-sizing: border-box;
-  max-height: 300px;
+  max-height: $euiSizeXL * 10;
   overflow-y: auto;
 
   .gphAddData__circleIcon {
     margin-right: $euiSizeS;
+  }
+
+  &__item {
+    background: $euiColorEmptyShade;
+    transition: box-shadow $euiAnimSpeedFast $euiAnimSlightResistance;
+    
+    &:hover {
+      @include euiBottomShadowSmall;
+      background: $euiColorEmptyShade !important;
+    }
+
+    > button > span {
+      display: inline-flex;
+      flex: 1;
+      align-items: center;
+    } 
+  }
+  &__itemText {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &__itemIcon {
+    fill: $euiColorDarkShade;
   }
 }

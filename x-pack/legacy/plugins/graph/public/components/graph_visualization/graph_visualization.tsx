@@ -548,6 +548,7 @@ function GraphVisualizationComponent({
                             position="top"
                             content="Add data"
                             anchorClassName="gphVisualizationToolTipAnchor"
+                            delay="long"
                           >
                             <EuiButtonIcon
                               color="text"
