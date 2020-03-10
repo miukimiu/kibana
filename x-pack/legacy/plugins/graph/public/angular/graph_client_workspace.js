@@ -513,6 +513,12 @@ module.exports = (function() {
     };
 
     this.runLayout = function() {
+      if (self.changeHandler) {
+        // Hook to allow any client to respond to position changes
+        // e.g. angular adjusts and repaints node positions on screen.
+        self.changeHandler();
+      }
+      return;
       this.stopLayout();
       // The set of nodes and edges we present to the d3 layout algorithms
       // is potentially a reduced set of nodes if the client has used any

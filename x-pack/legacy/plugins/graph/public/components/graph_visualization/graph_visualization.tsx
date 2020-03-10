@@ -4,6 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
+import { useSprings, animated, useSpring } from 'react-spring';
 import { connect, Provider } from 'react-redux';
 import { debounce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -43,6 +44,388 @@ import { VennDiagram } from '../venn_diagram';
  * node objects to handle grouping. This will be moved to
  * a separate data structure when the layouting is migrated
  */
+
+function GraphNode({
+  node,
+  nodeClick,
+  minDocCount,
+  topVertex,
+  popoverForceClosed,
+  setForceClosedPopover,
+  setShowDrilldown,
+  clientWorkspace,
+  mode,
+  dataMode,
+  editMode,
+  showDrilldown,
+  urlTemplates,
+}: {
+  node: any;
+  nodeClick: any;
+  minDocCount: any;
+  topVertex: any;
+  popoverForceClosed: any;
+  setForceClosedPopover: any;
+  setShowDrilldown: any;
+  clientWorkspace: any;
+  mode: any;
+  dataMode: any;
+  editMode: any;
+  showDrilldown: any;
+  urlTemplates: any;
+}) {
+  const nodeSpring = useSpring({
+    x: node.kx,
+    y: node.ky,
+  });
+  return (
+    <g
+      key={makeNodeId(node.data.field, node.data.term)}
+      onClick={e => {
+        e.stopPropagation();
+        nodeClick(node, e);
+      }}
+      onMouseDown={e => {
+        // avoid selecting text when selecting nodes
+        if (e.ctrlKey || e.shiftKey) {
+          e.preventDefault();
+        }
+      }}
+      className="gphNode"
+      style={{
+        opacity: (node as any).doc_count > 0 && (node as any).doc_count >= minDocCount ? 1 : 0.5,
+      }}
+    >
+      {topVertex && topVertex.id === node.id && (
+        <animated.foreignObject
+          width="10"
+          height="10"
+          transform="translate(0,-35)"
+          style={{ opacity: 1, position: 'absolute', zIndex: 999 }}
+          x={nodeSpring.x}
+          y={nodeSpring.y}
+        >
+          <EuiPopover
+            className="gphVisualizationPopover"
+            anchorPosition="upCenter"
+            button={<span />}
+            isOpen={!popoverForceClosed}
+            onClick={e => {
+              e.stopPropagation();
+            }}
+            closePopover={() => {
+              setForceClosedPopover(true);
+              setShowDrilldown(false);
+              // clientWorkspace.selectNone();
+              // notifyAngular();
+            }}
+          >
+            <div className="gphVisualizationPopover__description">
+              <EuiText size="s">
+                <p>
+                  {' '}
+                  {clientWorkspace.selectedNodes.length}{' '}
+                  {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'} selected
+                </p>
+              </EuiText>
+            </div>
+
+            <EuiToolTip
+              position="top"
+              content="Add data"
+              anchorClassName="gphVisualizationToolTipAnchor"
+              delay="long"
+            >
+              <EuiButtonIcon
+                color="text"
+                className="gphVisualizationPopover__button"
+                aria-label="add data"
+                iconType="graphApp"
+                disabled={mode === 'data'}
+                onClick={() => {
+                  dataMode();
+                }}
+              />
+            </EuiToolTip>
+            <EuiToolTip
+              position="top"
+              content="Edit"
+              anchorClassName="gphVisualizationToolTipAnchor"
+            >
+              <EuiButtonIcon
+                color="text"
+                className="gphVisualizationPopover__button"
+                aria-label="edit"
+                iconType="pencil"
+                disabled={mode === 'edit'}
+                onClick={() => {
+                  editMode();
+                }}
+              />
+            </EuiToolTip>
+            <EuiToolTip
+              position="top"
+              content="Group"
+              anchorClassName="gphVisualizationToolTipAnchor"
+            >
+              <EuiButtonIcon
+                color="text"
+                className="gphVisualizationPopover__button"
+                aria-label="group"
+                iconType="submodule"
+                disabled={
+                  clientWorkspace.selectedNodes.length === 1 &&
+                  clientWorkspace.selectedNodes[0].numChildren === 0
+                }
+                onClick={() => {
+                  setForceClosedPopover(true);
+                  editMode();
+                  if (clientWorkspace.selectedNodes.length === 1) {
+                    clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
+                  } else {
+                    clientWorkspace.groupSelections(
+                      clientWorkspace.selectedNodes[clientWorkspace.selectedNodes.length - 1]
+                    );
+                  }
+                }}
+              />
+            </EuiToolTip>
+            <EuiToolTip
+              position="top"
+              content="Drilldown"
+              anchorClassName="gphVisualizationToolTipAnchor"
+            >
+              <EuiButtonIcon
+                color="text"
+                className="gphVisualizationPopover__button"
+                aria-label="drilldown"
+                iconType="documents"
+                onClick={e => {
+                  e.stopPropagation();
+                  setShowDrilldown(!showDrilldown);
+                }}
+              />
+            </EuiToolTip>
+            <EuiToolTip
+              position="top"
+              content="Group"
+              anchorClassName="gphVisualizationToolTipAnchor"
+            >
+              <EuiButtonIcon
+                color="text"
+                className="gphVisualizationPopover__button"
+                aria-label="remove"
+                iconType="trash"
+                onClick={() => {
+                  clientWorkspace.deleteSelection();
+                }}
+              />
+            </EuiToolTip>
+            {showDrilldown && (
+              <EuiListGroup
+                listItems={urlTemplates.map(template => ({
+                  label: template.description,
+                  icon: template.icon ? (
+                    <LegacyIcon icon={template.icon} />
+                  ) : (
+                    <EuiIcon type="document" />
+                  ),
+                  size: 's',
+                  onClick: () => {
+                    const url = template.url;
+                    const newUrl = url.replace(
+                      urlTemplateRegex,
+                      template.encoder.encode(clientWorkspace)
+                    );
+                    window.open(newUrl, '_blank');
+                  },
+                }))}
+              />
+            )}
+          </EuiPopover>
+        </animated.foreignObject>
+      )}
+      <animated.circle
+        cx={nodeSpring.x}
+        cy={nodeSpring.y}
+        r={node.scaledSize}
+        className={classNames('gphNode__circle', {
+          'gphNode__circle--selected': node.isSelected,
+        })}
+        style={{ fill: node.color }}
+      />
+      {node.icon && (
+        <animated.text
+          className={classNames('fa gphNode__text', {
+            'gphNode__text--inverse': isColorDark(...hexToRgb(node.color)),
+          })}
+          transform="translate(0,5)"
+          textAnchor="middle"
+          x={nodeSpring.x}
+          y={nodeSpring.y}
+        >
+          {node.icon.code}
+        </animated.text>
+      )}
+
+      {node.label.length < 30 && (
+        <animated.text
+          className="gphNode__label"
+          textAnchor="middle"
+          transform="translate(0,22)"
+          x={nodeSpring.x}
+          y={nodeSpring.y}
+        >
+          {node.label}
+        </animated.text>
+      )}
+      {node.label.length >= 30 && (
+        <animated.foreignObject
+          width="100"
+          height="20"
+          transform="translate(-50,15)"
+          x={nodeSpring.x}
+          y={nodeSpring.y}
+        >
+          <p className="gphNode__label gphNode__label--html gphNoUserSelect">{node.label}</p>
+        </animated.foreignObject>
+      )}
+
+      {node.numChildren > 0 && (
+        <g>
+          <animated.circle
+            r="5"
+            className="gphNode__markerCircle"
+            transform="translate(10,10)"
+            cx={nodeSpring.x}
+            cy={nodeSpring.y}
+          />
+          <animated.text
+            className="gphNode__markerText"
+            textAnchor="middle"
+            transform="translate(10,12)"
+            x={nodeSpring.x}
+            y={nodeSpring.y}
+          >
+            {node.numChildren}
+          </animated.text>
+        </g>
+      )}
+    </g>
+  );
+}
+
+function GraphEdge({
+  selectedEdge,
+  edge,
+  popoverForceClosed,
+  setForceClosedPopover,
+  setShowDrilldown,
+  setSelectedEdge,
+  edgeSummary,
+  maxDocCount,
+}: {
+  selectedEdge: any;
+  edge: any;
+  popoverForceClosed: any;
+  setForceClosedPopover: any;
+  setShowDrilldown: any;
+  setSelectedEdge: any;
+  edgeSummary: any;
+  maxDocCount: any;
+}) {
+  const edgeSpring = useSpring({
+    x1: edge.topSrc.kx,
+    x2: edge.topTarget.kx,
+    y1: edge.topSrc.ky,
+    y2: edge.topTarget.ky,
+  });
+  const introSpring = useSpring({ from: { opacity: 0 }, to: { opacity: 1 } });
+  return (
+    <>
+      {selectedEdge === edge && (
+        <foreignObject
+          width="10"
+          height="10"
+          transform="translate(0,-35)"
+          style={{ opacity: 1, position: 'absolute', zIndex: 999 }}
+          x={(edge.topSrc.kx + edge.topTarget.kx) / 2}
+          y={(edge.topSrc.ky + edge.topTarget.ky) / 2}
+        >
+          <EuiPopover
+            className="gphVisualizationPopover"
+            anchorPosition="upCenter"
+            button={<span />}
+            isOpen={!popoverForceClosed}
+            onClick={e => {
+              e.stopPropagation();
+            }}
+            closePopover={() => {
+              setForceClosedPopover(true);
+              setShowDrilldown(false);
+              setSelectedEdge(undefined);
+            }}
+          >
+            <div className="gphVisualizationPopover__description">
+              <EuiText size="s">
+                <h4>Connection summary</h4>
+              </EuiText>
+            </div>
+
+            {edgeSummary ? (
+              <div className="gphVisualizationPopover__edgeSummary">
+                <VennDiagram
+                  leftValue={edgeSummary.v1}
+                  rightValue={edgeSummary.v2}
+                  overlap={edgeSummary.overlap}
+                />
+                <EuiText className="gphVisualizationPopover__edgeSummaryText" size="s">
+                  <span>{edgeSummary.v1}</span>
+                  <span className="gphVisualizationPopover__edgeSummaryOverlap">
+                    ({edgeSummary.overlap})
+                  </span>
+                  <span>{edgeSummary.v2}</span>
+                </EuiText>
+                <EuiText className="gphVisualizationPopover__fieldTerm" size="xs">
+                  <span>
+                    {edge.topSrc.data.field}: {edge.topSrc.data.term}
+                  </span>
+                  <span>
+                    {edge.topTarget.data.field}: {edge.topTarget.data.term}
+                  </span>
+                </EuiText>
+              </div>
+            ) : (
+              'loading...'
+            )}
+          </EuiPopover>
+        </foreignObject>
+      )}
+      <animated.line
+        key={`${makeNodeId(edge.source.data.field, edge.source.data.term)}-${makeNodeId(
+          edge.target.data.field,
+          edge.target.data.term
+        )}`}
+        x1={edgeSpring.x1}
+        y1={edgeSpring.y1}
+        x2={edgeSpring.x2}
+        y2={edgeSpring.y2}
+        onClick={() => {
+          setSelectedEdge(edge);
+          setForceClosedPopover(false);
+        }}
+        className={classNames('gphEdge', {
+          'gphEdge--selected': edge.isSelected,
+        })}
+        style={{
+          strokeWidth: Math.max(2, ((edge as any).doc_count / maxDocCount) * 5),
+          ...introSpring,
+        }}
+        strokeLinecap="round"
+      />
+    </>
+  );
+}
 
 export interface GroupAwareWorkspaceNode extends WorkspaceNode {
   kx: number;
@@ -172,6 +555,20 @@ function GraphVisualizationComponent({
   }
 
   const topVertex = getTopMostSelectedVertex();
+
+  const filteredEdges = edges
+    ? edges.filter(
+        edge =>
+          (edge as any).doc_count >= minDocCount &&
+          (selectedFieldIds.has(edge.topSrc.data.field) || edge.topSrc.data.alwaysKeep) &&
+          (selectedFieldIds.has(edge.topTarget.data.field) || edge.topSrc.data.alwaysKeep)
+      )
+    : [];
+  const filteredNodes = nodes
+    ? nodes.filter(
+        node => !node.parent && (selectedFieldIds.has(node.data.field) || node.data.alwaysKeep)
+      )
+    : [];
 
   return (
     <>
@@ -381,356 +778,46 @@ function GraphVisualizationComponent({
         }}
         onClick={() => {
           dataMode();
+          clientWorkspace.selectNone();
+          setRefresher(refresher + 1);
+          notifyAngular();
         }}
       >
         <g>
           <g>
             <g>
-              {edges &&
-                edges
-                  .filter(
-                    edge =>
-                      (edge as any).doc_count >= minDocCount &&
-                      (selectedFieldIds.has(edge.topSrc.data.field) ||
-                        edge.topSrc.data.alwaysKeep) &&
-                      (selectedFieldIds.has(edge.topTarget.data.field) ||
-                        edge.topSrc.data.alwaysKeep)
-                  )
-                  .map(edge => (
-                    <>
-                      {selectedEdge === edge && (
-                        <foreignObject
-                          width="10"
-                          height="10"
-                          transform="translate(0,-35)"
-                          style={{ opacity: 1, position: 'absolute', zIndex: 999 }}
-                          x={(edge.topSrc.kx + edge.topTarget.kx) / 2}
-                          y={(edge.topSrc.ky + edge.topTarget.ky) / 2}
-                        >
-                          <EuiPopover
-                            className="gphVisualizationPopover"
-                            anchorPosition="upCenter"
-                            button={<span />}
-                            isOpen={!popoverForceClosed}
-                            onClick={e => {
-                              e.stopPropagation();
-                            }}
-                            closePopover={() => {
-                              setForceClosedPopover(true);
-                              setShowDrilldown(false);
-                              setSelectedEdge(undefined);
-                            }}
-                          >
-                            <div className="gphVisualizationPopover__description">
-                              <EuiText size="s">
-                                <h4>Connection summary</h4>
-                              </EuiText>
-                            </div>
-
-                            {edgeSummary ? (
-                              <div className="gphVisualizationPopover__edgeSummary">
-                                <VennDiagram
-                                  leftValue={edgeSummary.v1}
-                                  rightValue={edgeSummary.v2}
-                                  overlap={edgeSummary.overlap}
-                                />
-                                <EuiText
-                                  className="gphVisualizationPopover__edgeSummaryText"
-                                  size="s"
-                                >
-                                  <span>{edgeSummary.v1}</span>
-                                  <span className="gphVisualizationPopover__edgeSummaryOverlap">
-                                    ({edgeSummary.overlap})
-                                  </span>
-                                  <span>{edgeSummary.v2}</span>
-                                </EuiText>
-                                <EuiText className="gphVisualizationPopover__fieldTerm" size="xs">
-                                  <span>
-                                    {edge.topSrc.data.field}: {edge.topSrc.data.term}
-                                  </span>
-                                  <span>
-                                    {edge.topTarget.data.field}: {edge.topTarget.data.term}
-                                  </span>
-                                </EuiText>
-                              </div>
-                            ) : (
-                              'loading...'
-                            )}
-                          </EuiPopover>
-                        </foreignObject>
-                      )}
-                      <line
-                        key={`${makeNodeId(
-                          edge.source.data.field,
-                          edge.source.data.term
-                        )}-${makeNodeId(edge.target.data.field, edge.target.data.term)}`}
-                        x1={edge.topSrc.kx}
-                        y1={edge.topSrc.ky}
-                        x2={edge.topTarget.kx}
-                        y2={edge.topTarget.ky}
-                        onClick={() => {
-                          setSelectedEdge(edge);
-                          setForceClosedPopover(false);
-                        }}
-                        className={classNames('gphEdge', {
-                          'gphEdge--selected': edge.isSelected,
-                        })}
-                        style={{
-                          strokeWidth: Math.max(2, ((edge as any).doc_count / maxDocCount) * 5),
-                        }}
-                        strokeLinecap="round"
-                      />
-                    </>
-                  ))}
+              {filteredEdges.map((edge, index) => (
+                <GraphEdge
+                  maxDocCount={maxDocCount}
+                  key={edge.topTarget.id + edge.topSrc.id}
+                  selectedEdge={selectedEdge}
+                  edge={edge}
+                  popoverForceClosed={popoverForceClosed}
+                  setForceClosedPopover={setForceClosedPopover}
+                  setShowDrilldown={setShowDrilldown}
+                  setSelectedEdge={setSelectedEdge}
+                  edgeSummary={edgeSummary}
+                />
+              ))}
             </g>
-            {nodes &&
-              nodes
-                .filter(
-                  node =>
-                    !node.parent && (selectedFieldIds.has(node.data.field) || node.data.alwaysKeep)
-                )
-                .map(node => (
-                  <g
-                    key={makeNodeId(node.data.field, node.data.term)}
-                    onClick={e => {
-                      nodeClick(node, e);
-                    }}
-                    onMouseDown={e => {
-                      // avoid selecting text when selecting nodes
-                      if (e.ctrlKey || e.shiftKey) {
-                        e.preventDefault();
-                      }
-                    }}
-                    className="gphNode"
-                    style={{
-                      opacity:
-                        (node as any).doc_count > 0 && (node as any).doc_count >= minDocCount
-                          ? 1
-                          : 0.5,
-                    }}
-                  >
-                    {topVertex && topVertex.id === node.id && (
-                      <foreignObject
-                        width="10"
-                        height="10"
-                        transform="translate(0,-35)"
-                        style={{ opacity: 1, position: 'absolute', zIndex: 999 }}
-                        x={node.kx}
-                        y={node.ky}
-                      >
-                        <EuiPopover
-                          className="gphVisualizationPopover"
-                          anchorPosition="upCenter"
-                          button={<span />}
-                          isOpen={!popoverForceClosed}
-                          onClick={e => {
-                            e.stopPropagation();
-                          }}
-                          closePopover={() => {
-                            setForceClosedPopover(true);
-                            setShowDrilldown(false);
-                            // clientWorkspace.selectNone();
-                            // notifyAngular();
-                          }}
-                        >
-                          <div className="gphVisualizationPopover__description">
-                            <EuiText size="s">
-                              <p>
-                                {' '}
-                                {clientWorkspace.selectedNodes.length}{' '}
-                                {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'}{' '}
-                                selected
-                              </p>
-                            </EuiText>
-                          </div>
-
-                          <EuiToolTip
-                            position="top"
-                            content="Add data"
-                            anchorClassName="gphVisualizationToolTipAnchor"
-                            delay="long"
-                          >
-                            <EuiButtonIcon
-                              color="text"
-                              className="gphVisualizationPopover__button"
-                              aria-label="add data"
-                              iconType="graphApp"
-                              disabled={mode === 'data'}
-                              onClick={() => {
-                                dataMode();
-                              }}
-                            />
-                          </EuiToolTip>
-                          <EuiToolTip
-                            position="top"
-                            content="Edit"
-                            anchorClassName="gphVisualizationToolTipAnchor"
-                          >
-                            <EuiButtonIcon
-                              color="text"
-                              className="gphVisualizationPopover__button"
-                              aria-label="edit"
-                              iconType="pencil"
-                              disabled={mode === 'edit'}
-                              onClick={() => {
-                                editMode();
-                              }}
-                            />
-                          </EuiToolTip>
-                          <EuiToolTip
-                            position="top"
-                            content="Group"
-                            anchorClassName="gphVisualizationToolTipAnchor"
-                          >
-                            <EuiButtonIcon
-                              color="text"
-                              className="gphVisualizationPopover__button"
-                              aria-label="group"
-                              iconType="submodule"
-                              disabled={
-                                clientWorkspace.selectedNodes.length === 1 &&
-                                clientWorkspace.selectedNodes[0].numChildren === 0
-                              }
-                              onClick={() => {
-                                setForceClosedPopover(true);
-                                editMode();
-                                if (clientWorkspace.selectedNodes.length === 1) {
-                                  clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
-                                } else {
-                                  clientWorkspace.groupSelections(
-                                    clientWorkspace.selectedNodes[
-                                      clientWorkspace.selectedNodes.length - 1
-                                    ]
-                                  );
-                                }
-                              }}
-                            />
-                          </EuiToolTip>
-                          <EuiToolTip
-                            position="top"
-                            content="Drilldown"
-                            anchorClassName="gphVisualizationToolTipAnchor"
-                          >
-                            <EuiButtonIcon
-                              color="text"
-                              className="gphVisualizationPopover__button"
-                              aria-label="drilldown"
-                              iconType="documents"
-                              onClick={e => {
-                                e.stopPropagation();
-                                setShowDrilldown(!showDrilldown);
-                              }}
-                            />
-                          </EuiToolTip>
-                          <EuiToolTip
-                            position="top"
-                            content="Group"
-                            anchorClassName="gphVisualizationToolTipAnchor"
-                          >
-                            <EuiButtonIcon
-                              color="text"
-                              className="gphVisualizationPopover__button"
-                              aria-label="remove"
-                              iconType="trash"
-                              onClick={() => {
-                                clientWorkspace.deleteSelection();
-                              }}
-                            />
-                          </EuiToolTip>
-                          {showDrilldown && (
-                            <EuiListGroup
-                              listItems={urlTemplates.map(template => ({
-                                label: template.description,
-                                icon: template.icon ? (
-                                  <LegacyIcon icon={template.icon} />
-                                ) : (
-                                  <EuiIcon type="document" />
-                                ),
-                                size: 's',
-                                onClick: () => {
-                                  const url = template.url;
-                                  const newUrl = url.replace(
-                                    urlTemplateRegex,
-                                    template.encoder.encode(clientWorkspace)
-                                  );
-                                  window.open(newUrl, '_blank');
-                                },
-                              }))}
-                            />
-                          )}
-                        </EuiPopover>
-                      </foreignObject>
-                    )}
-                    <circle
-                      cx={node.kx}
-                      cy={node.ky}
-                      r={node.scaledSize}
-                      className={classNames('gphNode__circle', {
-                        'gphNode__circle--selected': node.isSelected,
-                      })}
-                      style={{ fill: node.color }}
-                    />
-                    {node.icon && (
-                      <text
-                        className={classNames('fa gphNode__text', {
-                          'gphNode__text--inverse': isColorDark(...hexToRgb(node.color)),
-                        })}
-                        transform="translate(0,5)"
-                        textAnchor="middle"
-                        x={node.kx}
-                        y={node.ky}
-                      >
-                        {node.icon.code}
-                      </text>
-                    )}
-
-                    {node.label.length < 30 && (
-                      <text
-                        className="gphNode__label"
-                        textAnchor="middle"
-                        transform="translate(0,22)"
-                        x={node.kx}
-                        y={node.ky}
-                      >
-                        {node.label}
-                      </text>
-                    )}
-                    {node.label.length >= 30 && (
-                      <foreignObject
-                        width="100"
-                        height="20"
-                        transform="translate(-50,15)"
-                        x={node.kx}
-                        y={node.ky}
-                      >
-                        <p className="gphNode__label gphNode__label--html gphNoUserSelect">
-                          {node.label}
-                        </p>
-                      </foreignObject>
-                    )}
-
-                    {node.numChildren > 0 && (
-                      <g>
-                        <circle
-                          r="5"
-                          className="gphNode__markerCircle"
-                          transform="translate(10,10)"
-                          cx={node.kx}
-                          cy={node.ky}
-                        />
-                        <text
-                          className="gphNode__markerText"
-                          textAnchor="middle"
-                          transform="translate(10,12)"
-                          x={node.kx}
-                          y={node.ky}
-                        >
-                          {node.numChildren}
-                        </text>
-                      </g>
-                    )}
-                  </g>
-                ))}
+            {filteredNodes.map((node, index) => (
+              <GraphNode
+                key={node.id}
+                node={node}
+                nodeClick={nodeClick}
+                minDocCount={minDocCount}
+                topVertex={topVertex}
+                popoverForceClosed={popoverForceClosed}
+                setForceClosedPopover={setForceClosedPopover}
+                setShowDrilldown={setShowDrilldown}
+                clientWorkspace={clientWorkspace}
+                mode={mode}
+                dataMode={dataMode}
+                editMode={editMode}
+                showDrilldown={showDrilldown}
+                urlTemplates={urlTemplates}
+              />
+            ))}
           </g>
         </g>
       </svg>

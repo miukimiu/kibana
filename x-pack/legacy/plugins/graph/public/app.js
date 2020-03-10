@@ -30,7 +30,7 @@ import { createCachedIndexPatternProvider } from './services/index_pattern_cache
 import { urlTemplateRegex } from './helpers/url_template';
 import { asAngularSyncedObservable } from './helpers/as_observable';
 import { colorChoices } from './helpers/style_choices';
-import { createGraphStore, datasourceSelector, hasFieldsSelector } from './state_management';
+import { createGraphStore, datasourceSelector, hasFieldsSelector, changeWorkspace } from './state_management';
 import { formatHttpError } from './helpers/format_http_error';
 
 export function initGraphApp(angularModule, deps) {
@@ -272,6 +272,7 @@ export function initGraphApp(angularModule, deps) {
             //   console.log(newNodes);
           },
           changeHandler: function() {
+            store.dispatch(changeWorkspace());
             //Allows DOM to update with graph layout changes.
             $scope.$apply();
           },

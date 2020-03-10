@@ -245,7 +245,7 @@ function AddDataPanelComponent(props: any) {
                             props.fields.find(field => field.name === choices[0].label)
                           );
                         }}
-                        isClearable
+                        isClearable={false}
                       />
                       {selectedField && (
                         <>
@@ -320,6 +320,7 @@ function AddDataPanelComponent(props: any) {
                         }}
                       />
                       <EuiButtonEmpty
+                        disabled={!freeField || !freeTerm}
                         className="gphAddData__ce"
                         iconType="plusInCircleFilled"
                         onClick={async () => {

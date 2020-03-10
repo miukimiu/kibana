@@ -166,7 +166,7 @@ export function SearchBarComponent(props: SearchBarProps) {
           <EuiButton
             fill
             type="submit"
-            disabled={isLoading || !currentIndexPattern}
+            disabled={!currentIndexPattern}
             data-test-subj="graph-explore-button"
           >
             Filter
