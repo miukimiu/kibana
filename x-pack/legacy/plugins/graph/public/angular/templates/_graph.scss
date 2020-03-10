@@ -1,4 +1,5 @@
-@import 'src/legacy/ui/public/chrome/variables';
+@import "src/legacy/ui/public/chrome/variables";
+@import "@elastic/eui/src/components/header/variables";
 
 @mixin gphSvgText() {
   font-family: $euiFontFamily;
@@ -13,13 +14,13 @@
  * 1. Calculated px values come from the open/closed state of the global nav sidebar
  */
 
-
- #graphBasic {
-   display: flex;
-   flex-direction: column;
-   flex: 1;
-   overflow: hidden;
- }
+#graphBasic {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - #{$euiHeaderChildSize});
+  width: 100%;
+  overflow: hidden;
+}
 
 .gphGraph__container {
   display: flex;

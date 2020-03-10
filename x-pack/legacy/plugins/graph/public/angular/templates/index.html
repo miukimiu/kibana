@@ -1,7 +1,6 @@
 <main id="graphBasic" ng-controller="graphuiPlugin" aria-labelledby="graphHeading">
   <!-- Local nav. -->
-  <kbn-top-nav name="workspacesTopNav" config="topNavMenu">
-  </kbn-top-nav>
+  <kbn-top-nav name="workspacesTopNav" config="topNavMenu"> </kbn-top-nav>
 
   <div class="gphGraph__menus" ng-show="menus.showInspect">
     <div>
@@ -11,10 +10,7 @@
         i18n-default-message="Inspect"
       ></div>
 
-      <div
-        class="list-group-item"
-        ng-if="(workspace !== null)"
-      >
+      <div class="list-group-item" ng-if="(workspace !== null)">
         <small class="help-block">http://host:port/{{ selectedIndex.name }}/_graph/explore</small>
         <ul class="nav nav-tabs">
           <li ng-class="{active: spymode === 'request'}">
@@ -49,39 +45,45 @@
     </div>
   </div>
 
-  <div
-    graph-app
-    current-index-pattern="selectedIndex"
-    on-query-submit="submit"
-    index-pattern-provider="indexPatternProvider"
-    redux-store="reduxStore"
-    confirm-wipe-workspace="confirmWipeWorkspace"
-    is-loading="loading"
-    is-initialized="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)"
-    initial-query="initialQuery"
-    plugin-data-start="pluginDataStart"
-    core-start="coreStart"
-    storage="storage"
-    no-index-patterns="noIndexPatterns"
-    client-workspace="workspace"
-    selected-nodes="workspace.selectedNodes"
-    notify-angular="notifyAngular"
-  ></div>
-
-  <div class="gphGraph__container" id="GraphSvgContainer" ng-if="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)">
+  <div class="gphGraph__workspace">
     <div
-      class="gphVisualization"
-      graph-visualization
-      nodes="workspace.nodes"
-      edges="workspace.edges"
-      edge-click="clickEdge"
-      node-click="nodeClick"
-      max-doc-count="workspace.maxDocCount"
-      client-workspace="workspace"
+      class="gphGraph__workspace__inner"
+      graph-app
+      current-index-pattern="selectedIndex"
+      on-query-submit="submit"
+      index-pattern-provider="indexPatternProvider"
       redux-store="reduxStore"
+      confirm-wipe-workspace="confirmWipeWorkspace"
+      is-loading="loading"
+      is-initialized="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)"
+      initial-query="initialQuery"
+      plugin-data-start="pluginDataStart"
+      core-start="coreStart"
+      storage="storage"
+      no-index-patterns="noIndexPatterns"
+      client-workspace="workspace"
+      selected-nodes="workspace.selectedNodes"
       notify-angular="notifyAngular"
     ></div>
-  </div>
-  <!--end svg container-->
 
+    <div
+      class="gphGraph__visContainer"
+      id="GraphSvgContainer"
+      ng-if="workspaceInitialized || savedWorkspace.id || (workspace && workspace.nodes.length > 0)"
+    >
+      <div
+        class="gphVisualization"
+        graph-visualization
+        nodes="workspace.nodes"
+        edges="workspace.edges"
+        edge-click="clickEdge"
+        node-click="nodeClick"
+        max-doc-count="workspace.maxDocCount"
+        client-workspace="workspace"
+        redux-store="reduxStore"
+        notify-angular="notifyAngular"
+      ></div>
+    </div>
+    <!--end svg container-->
+  </div>
 </main>

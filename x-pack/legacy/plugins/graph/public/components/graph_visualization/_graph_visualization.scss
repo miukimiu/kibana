@@ -2,6 +2,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+
+  &__toolbar {
+  }
+  &__toolbarButton {
+  }
 }
 
 .gphGraph {
@@ -63,5 +68,78 @@
 
   &--inverse {
     fill: $euiColorGhost;
+  }
+}
+
+.gphVisualization__toolbar {
+  position: absolute;
+  top: $euiSizeM;
+  left: $euiSizeM;
+
+  > div {
+    margin-bottom: $euiSizeS;
+  }
+}
+
+.gphVisualization__toolbarButtonGroup {
+  @include euiBottomShadow;
+  background-color: $euiColorEmptyShade !important;
+  pointer-events: all;
+  border-radius: $euiBorderRadius;
+
+  .euiButtonIcon {
+    @include size($euiSizeXL);
+    background-color: $euiColorEmptyShade !important;
+    pointer-events: all;
+  }
+}
+
+.gphVisualization__toolbarButton {
+  @include size($euiSizeXL);
+  // sass-lint:disable-block no-important
+  background-color: $euiColorEmptyShade !important;
+  pointer-events: all;
+
+  &:enabled,
+  &:enabled:hover,
+  &:enabled:focus {
+    @include euiBottomShadow;
+  }
+}
+
+.gphVisualizationPopover {
+  &__description {
+    border-bottom: 1px solid $euiBorderColor;
+    padding-bottom: $euiSizeS;
+    margin-bottom: $euiSizeS;
+  }
+  &__edgeSummary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+  &__edgeSummaryText,
+  &__fieldTerm {
+    margin-top: $euiSizeXS;
+  }
+  &__fieldTerm {
+    span:first-child {
+      margin-right:  $euiSizeXS;
+    }
+    span:last-child {
+      margin-left:  $euiSizeXS;
+    }
+  }
+  &__edgeSummaryOverlap {
+    margin: 0 $euiSizeS;
+  }
+}
+
+.gphVisualizationToolTipAnchor {
+  margin-right: $euiSizeS;
+
+  &:last-of-type {
+    margin-right: 0;
   }
 }

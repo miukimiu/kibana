@@ -18,9 +18,12 @@ import {
   EuiFormRow,
   EuiListGroup,
   EuiIcon,
-  EuiPanel,
+  EuiToolTip,
   EuiContextMenuPanel,
   EuiContextMenuItem,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiText,
 } from '@elastic/eui';
 import { WorkspaceNode, WorkspaceEdge, WorkspaceField, UrlTemplate } from '../../types';
 import { makeNodeId } from '../../services/persistence';
@@ -31,7 +34,6 @@ import {
   templatesSelector,
   updateMetaData,
 } from '../../state_management';
-import { KibanaContextProvider } from '../../../../../../../src/plugins/kibana_react/public/context';
 import { urlTemplateRegex } from '../../helpers/url_template';
 import { LegacyIcon } from '../legacy_icon';
 import { VennDiagram } from '../venn_diagram';
@@ -173,175 +175,196 @@ function GraphVisualizationComponent({
 
   return (
     <>
-      <div style={{ position: 'absolute', top: 10, left: 10 }}>
-        <EuiPopover
-          id="popover"
-          anchorPosition="rightUp"
-          button={
-            <EuiPanel paddingSize="xs">
-              <EuiButtonIcon
-                iconType="filter"
-                aria-label="filter connections"
-                onClick={() => setOpen(!open)}
-              />
-            </EuiPanel>
-          }
-          isOpen={open}
-          closePopover={() => setOpen(false)}
+      <div className="gphVisualization__toolbar">
+        <EuiFlexGroup
+          responsive={false}
+          direction="column"
+          alignItems="flexStart"
+          gutterSize="none"
+          className="gphVisualization__toolbarButtonGroup"
         >
-          <EuiFormRow label="Minimum number of connections">
-            <EuiRange
-              value={minDocCount}
-              min={0}
-              max={maxDocCount}
-              onChange={e => {
-                setMinDocCount(e.target.valueAsNumber);
-                updateLayout(clientWorkspace, e.target.valueAsNumber);
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="plusInCircleFilled"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.scale(zoom.scale() * 1.1);
+
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
               }}
-              showInput
             />
-          </EuiFormRow>
-        </EuiPopover>
-      </div>
-      <div style={{ position: 'absolute', top: 40, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="plusInCircle"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="minusInCircleFilled"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.scale(zoom.scale() * 1.1);
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.scale(zoom.scale() * 0.9);
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 70, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="minusInCircle"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
+              }}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.scale(zoom.scale() * 0.9);
+        <EuiFlexGroup responsive={false} direction="column" alignItems="flexStart" gutterSize="s">
+          <EuiFlexItem>
+            <EuiButtonIcon
+              className="gphVisualization__toolbarButton"
+              color="text"
+              iconType="crosshairs"
+              aria-label="filter connections"
+              onClick={() => {
+                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 100, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="bullseye"
-            aria-label="filter connections"
-            onClick={() => {
-              d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+                // Record the coordinates (in data space) of the center (in screen space).
+                zoom.translate([0, 0]);
+                zoom.scale(1);
 
-              // Record the coordinates (in data space) of the center (in screen space).
-              zoom.translate([0, 0]);
-              zoom.scale(1);
+                d3el
+                  .transition()
+                  .duration(300)
+                  .call(zoom.event);
+              }}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
 
-              d3el
-                .transition()
-                .duration(300)
-                .call(zoom.event);
-            }}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 130, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="editorUndo"
-            aria-label="filter connections"
-            onClick={() => clientWorkspace.undo()}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 160, left: 10 }}>
-        <EuiPanel paddingSize="xs">
-          <EuiButtonIcon
-            iconType="editorRedo"
-            aria-label="filter connections"
-            onClick={() => clientWorkspace.redo()}
-          />
-        </EuiPanel>
-      </div>
-      <div style={{ position: 'absolute', top: 200, left: 10 }}>
-        <EuiPopover
-          id="popover"
-          anchorPosition="rightUp"
-          button={
-            <EuiPanel paddingSize="xs">
-              <EuiButtonIcon
-                iconType="partial"
-                aria-label="filter connections"
-                onClick={() => setSelectionOpen(!selectionOpen)}
-              />
-            </EuiPanel>
-          }
-          isOpen={selectionOpen}
-          closePopover={() => setSelectionOpen(false)}
+        <EuiFlexGroup
+          responsive={false}
+          direction="column"
+          alignItems="flexStart"
+          gutterSize="none"
+          className="gphVisualization__toolbarButtonGroup"
         >
-          <EuiContextMenuPanel title="Selections">
-            <EuiContextMenuItem
-              key="all"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectAll();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="editorUndo"
+              aria-label="filter connections"
+              onClick={() => clientWorkspace.undo()}
+            />
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiButtonIcon
+              color="text"
+              iconType="editorRedo"
+              aria-label="filter connections"
+              onClick={() => clientWorkspace.redo()}
+            />
+          </EuiFlexItem>
+        </EuiFlexGroup>
+
+        <EuiFlexGroup responsive={false} direction="column" alignItems="flexStart" gutterSize="s">
+          <EuiFlexItem>
+            <EuiPopover
+              id="popover"
+              anchorPosition="rightUp"
+              button={
+                <EuiButtonIcon
+                  className="gphVisualization__toolbarButton"
+                  color="text"
+                  iconType="partial"
+                  aria-label="filter connections"
+                  onClick={() => setSelectionOpen(!selectionOpen)}
+                />
+              }
+              isOpen={selectionOpen}
+              closePopover={() => setSelectionOpen(false)}
             >
-              All
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="none"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectNone();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
+              <EuiContextMenuPanel title="Selections">
+                <EuiContextMenuItem
+                  key="all"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectAll();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  All
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="none"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectNone();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  None
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="invert"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectInvert();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  Invert
+                </EuiContextMenuItem>
+                <EuiContextMenuItem
+                  key="linked"
+                  icon="empty"
+                  onClick={() => {
+                    clientWorkspace.selectNeighbours();
+                    setRefresher(refresher + 1);
+                    notifyAngular();
+                  }}
+                >
+                  Linked
+                </EuiContextMenuItem>
+              </EuiContextMenuPanel>
+            </EuiPopover>
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiPopover
+              id="popover"
+              anchorPosition="rightUp"
+              button={
+                <EuiButtonIcon
+                  className="gphVisualization__toolbarButton"
+                  color="text"
+                  iconType="filter"
+                  aria-label="filter connections"
+                  onClick={() => setOpen(!open)}
+                />
+              }
+              isOpen={open}
+              closePopover={() => setOpen(false)}
             >
-              None
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="invert"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectInvert();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
-            >
-              Invert
-            </EuiContextMenuItem>
-            <EuiContextMenuItem
-              key="linked"
-              icon="empty"
-              onClick={() => {
-                clientWorkspace.selectNeighbours();
-                setRefresher(refresher + 1);
-                notifyAngular();
-              }}
-            >
-              Linked
-            </EuiContextMenuItem>
-          </EuiContextMenuPanel>
-        </EuiPopover>
+              <EuiFormRow label="Minimum number of connections">
+                <EuiRange
+                  value={minDocCount}
+                  min={0}
+                  max={maxDocCount}
+                  onChange={e => {
+                    setMinDocCount(e.target.valueAsNumber);
+                    updateLayout(clientWorkspace, e.target.valueAsNumber);
+                  }}
+                  showInput
+                />
+              </EuiFormRow>
+            </EuiPopover>
+          </EuiFlexItem>
+        </EuiFlexGroup>
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -385,6 +408,7 @@ function GraphVisualizationComponent({
                           y={(edge.topSrc.ky + edge.topTarget.ky) / 2}
                         >
                           <EuiPopover
+                            className="gphVisualizationPopover"
                             anchorPosition="upCenter"
                             button={<span />}
                             isOpen={!popoverForceClosed}
@@ -397,23 +421,38 @@ function GraphVisualizationComponent({
                               setSelectedEdge(undefined);
                             }}
                           >
-                            <small>Connection summary</small>
+                            <div className="gphVisualizationPopover__description">
+                              <EuiText size="s">
+                                <h4>Connection summary</h4>
+                              </EuiText>
+                            </div>
+
                             {edgeSummary ? (
-                              <>
-                                <div style={{ textAlign: 'center' }}>
-                                  <VennDiagram
-                                    leftValue={edgeSummary.v1}
-                                    rightValue={edgeSummary.v2}
-                                    overlap={edgeSummary.overlap}
-                                  />
-                                  <small>
-                                    {edgeSummary.v1} ({edgeSummary.overlap}) {edgeSummary.v2}
-                                    <br />
-                                    {edge.topSrc.data.field}: {edge.topSrc.data.term}{' '}
+                              <div className="gphVisualizationPopover__edgeSummary">
+                                <VennDiagram
+                                  leftValue={edgeSummary.v1}
+                                  rightValue={edgeSummary.v2}
+                                  overlap={edgeSummary.overlap}
+                                />
+                                <EuiText
+                                  className="gphVisualizationPopover__edgeSummaryText"
+                                  size="s"
+                                >
+                                  <span>{edgeSummary.v1}</span>
+                                  <span className="gphVisualizationPopover__edgeSummaryOverlap">
+                                    ({edgeSummary.overlap})
+                                  </span>
+                                  <span>{edgeSummary.v2}</span>
+                                </EuiText>
+                                <EuiText className="gphVisualizationPopover__fieldTerm" size="xs">
+                                  <span>
+                                    {edge.topSrc.data.field}: {edge.topSrc.data.term}
+                                  </span>
+                                  <span>
                                     {edge.topTarget.data.field}: {edge.topTarget.data.term}
-                                  </small>
-                                </div>
-                              </>
+                                  </span>
+                                </EuiText>
+                              </div>
                             ) : (
                               'loading...'
                             )}
@@ -480,6 +519,7 @@ function GraphVisualizationComponent({
                         y={node.ky}
                       >
                         <EuiPopover
+                          className="gphVisualizationPopover"
                           anchorPosition="upCenter"
                           button={<span />}
                           isOpen={!popoverForceClosed}
@@ -493,64 +533,110 @@ function GraphVisualizationComponent({
                             // notifyAngular();
                           }}
                         >
-                          <small>
-                            {clientWorkspace.selectedNodes.length}{' '}
-                            {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'}{' '}
-                            selected
-                          </small>
-                          <br />
-                          <EuiButtonIcon
-                            aria-label="add data"
-                            iconType="graphApp"
-                            disabled={mode === 'data'}
-                            onClick={() => {
-                              dataMode();
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="edit"
-                            iconType="pencil"
-                            disabled={mode === 'edit'}
-                            onClick={() => {
-                              editMode();
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="group"
-                            iconType="submodule"
-                            disabled={
-                              clientWorkspace.selectedNodes.length === 1 &&
-                              clientWorkspace.selectedNodes[0].numChildren === 0
-                            }
-                            onClick={() => {
-                              setForceClosedPopover(true);
-                              editMode();
-                              if (clientWorkspace.selectedNodes.length === 1) {
-                                clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
-                              } else {
-                                clientWorkspace.groupSelections(
-                                  clientWorkspace.selectedNodes[
-                                    clientWorkspace.selectedNodes.length - 1
-                                  ]
-                                );
+                          <div className="gphVisualizationPopover__description">
+                            <EuiText size="s">
+                              <p>
+                                {' '}
+                                {clientWorkspace.selectedNodes.length}{' '}
+                                {clientWorkspace.selectedNodes.length === 1 ? 'vertex' : 'vertices'}{' '}
+                                selected
+                              </p>
+                            </EuiText>
+                          </div>
+
+                          <EuiToolTip
+                            position="top"
+                            content="Add data"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                            delay="long"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="add data"
+                              iconType="graphApp"
+                              disabled={mode === 'data'}
+                              onClick={() => {
+                                dataMode();
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Edit"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="edit"
+                              iconType="pencil"
+                              disabled={mode === 'edit'}
+                              onClick={() => {
+                                editMode();
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Group"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="group"
+                              iconType="submodule"
+                              disabled={
+                                clientWorkspace.selectedNodes.length === 1 &&
+                                clientWorkspace.selectedNodes[0].numChildren === 0
                               }
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="drilldown"
-                            iconType="link"
-                            onClick={e => {
-                              e.stopPropagation();
-                              setShowDrilldown(!showDrilldown);
-                            }}
-                          />{' '}
-                          <EuiButtonIcon
-                            aria-label="remove"
-                            iconType="trash"
-                            onClick={() => {
-                              clientWorkspace.deleteSelection();
-                            }}
-                          />
+                              onClick={() => {
+                                setForceClosedPopover(true);
+                                editMode();
+                                if (clientWorkspace.selectedNodes.length === 1) {
+                                  clientWorkspace.ungroup(clientWorkspace.selectedNodes[0]);
+                                } else {
+                                  clientWorkspace.groupSelections(
+                                    clientWorkspace.selectedNodes[
+                                      clientWorkspace.selectedNodes.length - 1
+                                    ]
+                                  );
+                                }
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Drilldown"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="drilldown"
+                              iconType="documents"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setShowDrilldown(!showDrilldown);
+                              }}
+                            />
+                          </EuiToolTip>
+                          <EuiToolTip
+                            position="top"
+                            content="Group"
+                            anchorClassName="gphVisualizationToolTipAnchor"
+                          >
+                            <EuiButtonIcon
+                              color="text"
+                              className="gphVisualizationPopover__button"
+                              aria-label="remove"
+                              iconType="trash"
+                              onClick={() => {
+                                clientWorkspace.deleteSelection();
+                              }}
+                            />
+                          </EuiToolTip>
                           {showDrilldown && (
                             <EuiListGroup
                               listItems={urlTemplates.map(template => ({
@@ -558,7 +644,7 @@ function GraphVisualizationComponent({
                                 icon: template.icon ? (
                                   <LegacyIcon icon={template.icon} />
                                 ) : (
-                                  <EuiIcon iconType="blank" />
+                                  <EuiIcon type="document" />
                                 ),
                                 size: 's',
                                 onClick: () => {

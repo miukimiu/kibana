@@ -1,0 +1,135 @@
+.gphAddData {
+  width: $sidebarWidth;
+  border-top: 1px solid $euiBorderColor;
+  background-color: $euiPageBackgroundColor;
+  overflow: hidden;
+
+  &__inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  &__body {
+    padding: $euiSize;
+
+    .euiPanel {
+      margin-bottom: $euiSize;
+    }
+    .euiText {
+      margin-bottom: $euiSizeXS;
+    }
+  }
+
+  &__editNodeName + &__editNodeName {
+    margin-top: $euiSizeS;
+  }
+
+  &__prependIcon {
+    display: flex;
+    width: $euiSize * 2;
+    align-items: center;
+    justify-content: center;
+    background: $euiColorLightShade;
+    border-right: 1px solid $euiBorderColor;
+  }
+
+  &__circleIcon {
+    display: flex;
+    width: $euiSizeL;
+    height: $euiSizeL;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    .gphLegacyIcon {
+      margin-right: 0;
+      text-align: center;
+      display: inline-flex;
+      width: auto;
+      font-size: 12px;
+    }
+  }
+}
+
+.gphAddData__selectedNodesArea {
+  position: relative;
+  padding: $euiSize $euiSizeS;
+  border: $euiBorderThin;
+  border-radius: $euiBorderRadius;
+  margin-top: $euiSizeS;
+  margin-bottom: $euiSize;
+
+  > span {
+    margin-right: $euiSizeXS;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+
+  span + span {
+    margin-top: $euiSizeXS;
+  }
+
+  &:hover,
+  &:focus {
+    .gphAddData__selectedNodesArea__delete {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  &__delete {
+    @include euiBottomShadowSmall;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    margin-right: -$euiSizeS;
+    margin-top: -$euiSizeM;
+    background: $euiColorEmptyShade;
+    padding: $euiSizeXS;
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.gphAddData__nodesAddList {
+  @include euiScrollBar;
+  background: $euiColorLightestShade;
+  padding: $euiSizeS;
+  border-radius: $euiBorderRadius;
+  box-sizing: border-box;
+  max-height: $euiSizeXL * 10;
+  overflow-y: auto;
+
+  .gphAddData__circleIcon {
+    margin-right: $euiSizeS;
+  }
+
+  &__item {
+    background: $euiColorEmptyShade;
+    transition: box-shadow $euiAnimSpeedFast $euiAnimSlightResistance;
+    
+    &:hover {
+      @include euiBottomShadowSmall;
+      background: $euiColorEmptyShade !important;
+    }
+
+    > button > span {
+      display: inline-flex;
+      flex: 1;
+      align-items: center;
+    } 
+  }
+  &__itemText {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &__itemIcon {
+    fill: $euiColorDarkShade;
+  }
+}
