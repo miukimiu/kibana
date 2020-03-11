@@ -560,6 +560,7 @@ function GraphVisualizationComponent({
     ? edges.filter(
         edge =>
           (edge as any).doc_count >= minDocCount &&
+          !edge.topSrc.parent && !edge.topTarget.parent &&
           (selectedFieldIds.has(edge.topSrc.data.field) || edge.topSrc.data.alwaysKeep) &&
           (selectedFieldIds.has(edge.topTarget.data.field) || edge.topSrc.data.alwaysKeep)
       )
@@ -789,7 +790,7 @@ function GraphVisualizationComponent({
               {filteredEdges.map((edge, index) => (
                 <GraphEdge
                   maxDocCount={maxDocCount}
-                  key={edge.topTarget.id + edge.topSrc.id}
+                  key={edge.id}
                   selectedEdge={selectedEdge}
                   edge={edge}
                   popoverForceClosed={popoverForceClosed}
