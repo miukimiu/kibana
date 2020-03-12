@@ -38,6 +38,7 @@ import {
 import { urlTemplateRegex } from '../../helpers/url_template';
 import { LegacyIcon } from '../legacy_icon';
 import { VennDiagram } from '../venn_diagram';
+import { NodeIcon } from '../edit_nodes_panel';
 
 /*
  * The layouting algorithm sets a few extra properties on
@@ -59,6 +60,7 @@ function GraphNode({
   editMode,
   showDrilldown,
   urlTemplates,
+  setHoveredNode,
 }: {
   node: any;
   nodeClick: any;
@@ -73,6 +75,7 @@ function GraphNode({
   editMode: any;
   showDrilldown: any;
   urlTemplates: any;
+  setHoveredNode: any;
 }) {
   const nodeSpring = useSpring({
     x: node.kx,
@@ -90,6 +93,12 @@ function GraphNode({
         if (e.ctrlKey || e.shiftKey) {
           e.preventDefault();
         }
+      }}
+      onMouseEnter={() => {
+        setHoveredNode(node);
+      }}
+      onMouseLeave={() => {
+        setHoveredNode(undefined);
       }}
       className="gphNode"
       style={{
@@ -113,6 +122,7 @@ function GraphNode({
             onClick={e => {
               e.stopPropagation();
             }}
+            hasArrow={clientWorkspace.selectedNodes.length === 1}
             closePopover={() => {
               setForceClosedPopover(true);
               setShowDrilldown(false);
@@ -165,7 +175,12 @@ function GraphNode({
             </EuiToolTip>
             <EuiToolTip
               position="top"
-              content="Group"
+              content={
+                clientWorkspace.selectedNodes.length === 1 &&
+                !clientWorkspace.selectedNodes[0].numChildren === 0
+                  ? 'Ungroup'
+                  : 'Group'
+              }
               anchorClassName="gphVisualizationToolTipAnchor"
             >
               <EuiButtonIcon
@@ -208,7 +223,7 @@ function GraphNode({
             </EuiToolTip>
             <EuiToolTip
               position="top"
-              content="Group"
+              content="Delete selection"
               anchorClassName="gphVisualizationToolTipAnchor"
             >
               <EuiButtonIcon
@@ -307,7 +322,7 @@ function GraphNode({
             x={nodeSpring.x}
             y={nodeSpring.y}
           >
-            {node.numChildren}
+            {node.numChildren + 1}
           </animated.text>
         </g>
       )}
@@ -501,6 +516,7 @@ function GraphVisualizationComponent({
   const [selectedEdge, setSelectedEdge] = useState<any>(undefined);
   const [edgeSummary, setEdgeSummary] = useState<any>(undefined);
   const [refresher, setRefresher] = useState(0);
+  const [hoveredNode, setHoveredNode] = useState<undefined | WorkspaceNode>(undefined);
 
   useEffect(() => {
     if (!selectedEdge) return;
@@ -560,7 +576,8 @@ function GraphVisualizationComponent({
     ? edges.filter(
         edge =>
           (edge as any).doc_count >= minDocCount &&
-          !edge.topSrc.parent && !edge.topTarget.parent &&
+          !edge.topSrc.parent &&
+          !edge.topTarget.parent &&
           (selectedFieldIds.has(edge.topSrc.data.field) || edge.topSrc.data.alwaysKeep) &&
           (selectedFieldIds.has(edge.topTarget.data.field) || edge.topSrc.data.alwaysKeep)
       )
@@ -582,63 +599,69 @@ function GraphVisualizationComponent({
           className="gphVisualization__toolbarButtonGroup"
         >
           <EuiFlexItem>
-            <EuiButtonIcon
-              color="text"
-              iconType="plusInCircleFilled"
-              aria-label="filter connections"
-              onClick={() => {
-                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+            <EuiToolTip position="right" content="Zoom in">
+              <EuiButtonIcon
+                color="text"
+                iconType="plusInCircleFilled"
+                aria-label="filter connections"
+                onClick={() => {
+                  d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-                // Record the coordinates (in data space) of the center (in screen space).
-                zoom.scale(zoom.scale() * 1.1);
+                  // Record the coordinates (in data space) of the center (in screen space).
+                  zoom.scale(zoom.scale() * 1.1);
 
-                d3el
-                  .transition()
-                  .duration(300)
-                  .call(zoom.event);
-              }}
-            />
+                  d3el
+                    .transition()
+                    .duration(300)
+                    .call(zoom.event);
+                }}
+              />
+            </EuiToolTip>
           </EuiFlexItem>
           <EuiFlexItem>
-            <EuiButtonIcon
-              color="text"
-              iconType="minusInCircleFilled"
-              aria-label="filter connections"
-              onClick={() => {
-                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+            <EuiToolTip position="right" content="Zoom out">
+              <EuiButtonIcon
+                color="text"
+                iconType="minusInCircleFilled"
+                aria-label="filter connections"
+                onClick={() => {
+                  d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-                // Record the coordinates (in data space) of the center (in screen space).
-                zoom.scale(zoom.scale() * 0.9);
+                  // Record the coordinates (in data space) of the center (in screen space).
+                  zoom.scale(zoom.scale() * 0.9);
 
-                d3el
-                  .transition()
-                  .duration(300)
-                  .call(zoom.event);
-              }}
-            />
+                  d3el
+                    .transition()
+                    .duration(300)
+                    .call(zoom.event);
+                }}
+              />
+            </EuiToolTip>
           </EuiFlexItem>
         </EuiFlexGroup>
 
         <EuiFlexGroup responsive={false} direction="column" alignItems="flexStart" gutterSize="s">
           <EuiFlexItem>
-            <EuiButtonIcon
-              className="gphVisualization__toolbarButton"
-              color="text"
-              iconType="crosshairs"
-              aria-label="filter connections"
-              onClick={() => {
-                d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
+            <EuiToolTip position="right" content="Center workspace">
+              <EuiButtonIcon
+                className="gphVisualization__toolbarButton"
+                color="text"
+                iconType="crosshairs"
+                aria-label="filter connections"
+                onClick={() => {
+                  d3el.call(zoom.event); // https://github.com/mbostock/d3/issues/2387
 
-                // Record the coordinates (in data space) of the center (in screen space).
-                zoom.translate([0, 0]);
-                zoom.scale(1);
+                  // Record the coordinates (in data space) of the center (in screen space).
+                  zoom.translate([0, 0]);
+                  zoom.scale(1);
 
-                d3el
-                  .transition()
-                  .duration(300)
-                  .call(zoom.event);
-              }}
-            />
+                  d3el
+                    .transition()
+                    .duration(300)
+                    .call(zoom.event);
+                }}
+              />
+            </EuiToolTip>
           </EuiFlexItem>
         </EuiFlexGroup>
 
@@ -650,20 +673,24 @@ function GraphVisualizationComponent({
           className="gphVisualization__toolbarButtonGroup"
         >
           <EuiFlexItem>
-            <EuiButtonIcon
-              color="text"
-              iconType="editorUndo"
-              aria-label="filter connections"
-              onClick={() => clientWorkspace.undo()}
-            />
+            <EuiToolTip position="right" content="Undo last action">
+              <EuiButtonIcon
+                color="text"
+                iconType="editorUndo"
+                aria-label="filter connections"
+                onClick={() => clientWorkspace.undo()}
+              />
+            </EuiToolTip>
           </EuiFlexItem>
           <EuiFlexItem>
-            <EuiButtonIcon
-              color="text"
-              iconType="editorRedo"
-              aria-label="filter connections"
-              onClick={() => clientWorkspace.redo()}
-            />
+            <EuiToolTip position="right" content="Redo last action">
+              <EuiButtonIcon
+                color="text"
+                iconType="editorRedo"
+                aria-label="filter connections"
+                onClick={() => clientWorkspace.redo()}
+              />
+            </EuiToolTip>
           </EuiFlexItem>
         </EuiFlexGroup>
 
@@ -673,13 +700,25 @@ function GraphVisualizationComponent({
               id="popover"
               anchorPosition="rightUp"
               button={
-                <EuiButtonIcon
-                  className="gphVisualization__toolbarButton"
-                  color="text"
-                  iconType="partial"
-                  aria-label="filter connections"
-                  onClick={() => setSelectionOpen(!selectionOpen)}
-                />
+                selectionOpen ? (
+                  <EuiButtonIcon
+                    className="gphVisualization__toolbarButton"
+                    color="text"
+                    iconType="partial"
+                    aria-label="filter connections"
+                    onClick={() => setSelectionOpen(!selectionOpen)}
+                  />
+                ) : (
+                  <EuiToolTip position="right" content="Select vertices">
+                    <EuiButtonIcon
+                      className="gphVisualization__toolbarButton"
+                      color="text"
+                      iconType="partial"
+                      aria-label="filter connections"
+                      onClick={() => setSelectionOpen(!selectionOpen)}
+                    />
+                  </EuiToolTip>
+                )
               }
               isOpen={selectionOpen}
               closePopover={() => setSelectionOpen(false)}
@@ -737,13 +776,25 @@ function GraphVisualizationComponent({
               id="popover"
               anchorPosition="rightUp"
               button={
-                <EuiButtonIcon
-                  className="gphVisualization__toolbarButton"
-                  color="text"
-                  iconType="filter"
-                  aria-label="filter connections"
-                  onClick={() => setOpen(!open)}
-                />
+                open ? (
+                  <EuiButtonIcon
+                    className="gphVisualization__toolbarButton"
+                    color="text"
+                    iconType="filter"
+                    aria-label="filter connections"
+                    onClick={() => setOpen(!open)}
+                  />
+                ) : (
+                  <EuiToolTip position="right" content="Filter connections">
+                    <EuiButtonIcon
+                      className="gphVisualization__toolbarButton"
+                      color="text"
+                      iconType="filter"
+                      aria-label="filter connections"
+                      onClick={() => setOpen(!open)}
+                    />
+                  </EuiToolTip>
+                )
               }
               isOpen={open}
               closePopover={() => setOpen(false)}
@@ -817,11 +868,36 @@ function GraphVisualizationComponent({
                 editMode={editMode}
                 showDrilldown={showDrilldown}
                 urlTemplates={urlTemplates}
+                setHoveredNode={setHoveredNode}
               />
             ))}
           </g>
         </g>
       </svg>
+      {clientWorkspace && (
+        <div className="gphBottomBar">
+          {hoveredNode ? (
+            <EuiFlexGroup gutterSize="s">
+              <EuiFlexItem grow={false}>
+                <NodeIcon node={hoveredNode} />
+              </EuiFlexItem>
+              <EuiFlexItem>
+                <EuiText size="s">
+                  <span>{`${hoveredNode.data.field}: ${hoveredNode.data.term}`}</span>
+                </EuiText>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          ) : (
+            <EuiFlexGroup gutterSize="s">
+              <EuiFlexItem grow={false}>
+                <span
+                  style={{ padding: 4 }}
+                >{`${clientWorkspace.nodes.length} vertices, ${clientWorkspace.edges.length} connections (${filteredEdges.length} connections filtered)`}</span>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          )}
+        </div>
+      )}
     </>
   );
 }

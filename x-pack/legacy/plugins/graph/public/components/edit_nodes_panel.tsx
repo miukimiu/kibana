@@ -56,7 +56,7 @@ function EditNodesPanelComponent(props: any) {
           </EuiTitle>
           <EuiButtonIcon
             className="gphGraphSidebar__toggleIcon"
-            iconType="menuRight"
+            iconType="cross"
             color="text"
             onClick={() => {
               props.dataMode();

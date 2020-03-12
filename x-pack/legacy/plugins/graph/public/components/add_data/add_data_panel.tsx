@@ -21,6 +21,7 @@ import {
   EuiText,
   EuiTextAlign,
   EuiListGroupItem,
+  EuiIconTip,
 } from '@elastic/eui';
 import { connect } from 'react-redux';
 import { GraphState, metaDataSelector, selectedFieldsSelector } from '../../state_management';
@@ -113,7 +114,13 @@ function AddDataPanelComponent(props: any) {
                       initialIsOpen={true}
                       buttonContent={
                         <EuiTitle size="xs">
-                          <h4>Add Significant vertices</h4>
+                          <h4>
+                            Add Significant vertices
+                            <EuiIconTip
+                              content="Add vertices which show significant connections to your current selection or search. This list will update automatically if you change your selection."
+                              position="right"
+                            />
+                          </h4>
                         </EuiTitle>
                       }
                     >
@@ -230,7 +237,13 @@ function AddDataPanelComponent(props: any) {
                       initialIsOpen={false}
                       buttonContent={
                         <EuiTitle size="xs">
-                          <h4>Vertices by field</h4>
+                          <h4>
+                            Vertices by field
+                            <EuiIconTip
+                              content="Add vertices by selecting one of your exploration fields and seeing a list of the most common terms."
+                              position="right"
+                            />
+                          </h4>
                         </EuiTitle>
                       }
                     >
@@ -299,7 +312,13 @@ function AddDataPanelComponent(props: any) {
                       initialIsOpen={false}
                       buttonContent={
                         <EuiTitle size="xs">
-                          <h4>Free vertex</h4>
+                          <h4>
+                            Free vertex
+                            <EuiIconTip
+                              content="Add a vertex by freely specifying a field and the respective term."
+                              position="right"
+                            />
+                          </h4>
                         </EuiTitle>
                       }
                     >

@@ -8,7 +8,7 @@ import { EuiButtonIcon, EuiSpacer, EuiFlexGroup, EuiFlexItem } from '@elastic/eu
 
 import { DataPublicPluginStart } from 'src/plugins/data/public';
 import { Provider } from 'react-redux';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { I18nProvider } from '@kbn/i18n/react';
 import { CoreStart } from 'kibana/public';
 import { IStorageWrapper } from 'src/plugins/kibana_utils/public';
@@ -45,6 +45,16 @@ export function GraphApp(props: GraphAppProps) {
     noIndexPatterns,
     ...searchBarProps
   } = props;
+
+  useEffect(() => {
+    let currentMode = reduxStore.getState().metaData.mode;
+    reduxStore.subscribe(() => {
+      if (reduxStore.getState().metaData.mode !== currentMode) {
+        setSidebarOpen(true);
+        currentMode = reduxStore.getState().metaData.mode;
+      }
+    });
+  }, [reduxStore]);
 
   return (
     <I18nProvider>
