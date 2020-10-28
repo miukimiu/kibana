@@ -19,17 +19,17 @@
 
 import { i18n } from '@kbn/i18n';
 import { VisTypeAlias } from 'src/plugins/visualizations/public';
-import { APP_NAME, PLUGIN_ID, APP_PATH, APP_ICON } from '../common';
+import { APP_NAME, PLUGIN_ID_OSS, APP_PATH, APP_ICON } from '../common';
 
 export const getMapsAliasConfig = (): VisTypeAlias => ({
   aliasPath: APP_PATH,
   aliasApp: APP_NAME,
-  name: PLUGIN_ID,
+  name: PLUGIN_ID_OSS,
   title: i18n.translate('mapsOss.visTypeAlias.title', {
     defaultMessage: 'Maps',
   }),
   description: i18n.translate('mapsOss.visTypeAlias.description', {
-    defaultMessage: 'Create all map visualizations using your geo data.',
+    defaultMessage: 'Plot and style your geo data in a multi layer map.',
   }),
   icon: APP_ICON,
   stage: 'production',

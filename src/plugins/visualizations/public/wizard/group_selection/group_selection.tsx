@@ -18,7 +18,7 @@
  */
 
 import { FormattedMessage } from '@kbn/i18n/react';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { orderBy } from 'lodash';
 import {
   EuiFlexGroup,
@@ -43,6 +43,7 @@ import { DocLinksStart } from '../../../../../core/public';
 import { VisTypeAlias } from '../../vis_types/vis_type_alias_registry';
 import type { VisType, TypesStart } from '../../vis_types';
 import { VisGroups } from '../../vis_types';
+import './group_selection.scss';
 
 interface GroupSelectionProps {
   onVisTypeSelected: (visType: VisType | VisTypeAlias) => void;
@@ -78,7 +79,7 @@ function GroupSelection(props: GroupSelectionProps) {
         <EuiModalHeaderTitle data-test-subj="groupModalHeader">
           <FormattedMessage
             id="visualizations.newVisWizard.title"
-            defaultMessage="New Visualization"
+            defaultMessage="New visualization"
           />
         </EuiModalHeaderTitle>
       </EuiModalHeader>
@@ -104,6 +105,7 @@ function GroupSelection(props: GroupSelectionProps) {
                 <EuiCard
                   titleSize="xs"
                   layout="horizontal"
+                  onClick={() => props.toggleGroups(false)}
                   title={
                     <span data-test-subj="visGroupAggBasedTitle">
                       {i18n.translate('visualizations.newVisWizard.aggBasedGroupTitle', {
@@ -116,7 +118,7 @@ function GroupSelection(props: GroupSelectionProps) {
                     'visualizations.newVisWizard.aggBasedGroupDescription',
                     {
                       defaultMessage:
-                        'A set of frequently used visualizations that allows you to plot aggregated data to find trends, spikes and dips you need to know about',
+                        'Use our classic visualize library to create charts based on aggregations.',
                     }
                   )}
                   icon={<EuiIcon type="heatmap" size="xl" color="secondary" />}
@@ -128,7 +130,7 @@ function GroupSelection(props: GroupSelectionProps) {
                   >
                     <EuiText size="s">
                       {i18n.translate('visualizations.newVisWizard.exploreOptionLinkText', {
-                        defaultMessage: 'Explore Options',
+                        defaultMessage: 'Explore options',
                       })}{' '}
                       <EuiIcon type="sortRight" />
                     </EuiText>
@@ -187,23 +189,26 @@ function GroupSelection(props: GroupSelectionProps) {
 }
 
 const VisGroup = ({ visType, onVisTypeSelected }: VisCardProps) => {
-  const onClick = () => onVisTypeSelected(visType);
+  const onClick = useCallback(() => {
+    onVisTypeSelected(visType);
+  }, [onVisTypeSelected, visType]);
+  const shouldDisplayBadge = isVisTypeAlias(visType) && visType.disabled;
   return (
     <EuiFlexItem>
       <EuiCard
         titleSize="xs"
-        title={<span data-test-subj="visTypeTitle">{visType.title}</span>}
+        title={<span data-test-subj="visTypeTitle">{visType.groupTitle || visType.title}</span>}
         onClick={onClick}
-        isDisabled={isVisTypeAlias(visType) && visType.disabled}
+        isDisabled={shouldDisplayBadge}
         betaBadgeLabel={
-          isVisTypeAlias(visType) && visType.disabled
+          shouldDisplayBadge
             ? i18n.translate('visualizations.newVisWizard.basicTitle', {
                 defaultMessage: 'Basic',
               })
             : undefined
         }
         betaBadgeTooltipContent={
-          isVisTypeAlias(visType) && visType.disabled
+          shouldDisplayBadge
             ? i18n.translate('visualizations.newVisWizard.basicLicenseRequired', {
                 defaultMessage: 'This feature requires a Basic License',
               })
@@ -212,7 +217,12 @@ const VisGroup = ({ visType, onVisTypeSelected }: VisCardProps) => {
         data-test-subj={`visType-${visType.name}`}
         data-vis-stage={!('aliasPath' in visType) ? visType.stage : 'alias'}
         aria-label={`visType-${visType.name}`}
-        description={visType.description || ''}
+        description={
+          <>
+            <span>{visType.description || ''}</span>
+            <em> {visType.note || ''}</em>
+          </>
+        }
         layout="horizontal"
         icon={<EuiIcon type={visType.icon || 'empty'} size="xl" color="secondary" />}
         className="visNewVisDialog__groupsCard"
@@ -222,11 +232,13 @@ const VisGroup = ({ visType, onVisTypeSelected }: VisCardProps) => {
 };
 
 const ToolsGroup = ({ visType, onVisTypeSelected, showExperimental }: VisCardProps) => {
+  const onClick = useCallback(() => {
+    onVisTypeSelected(visType);
+  }, [onVisTypeSelected, visType]);
   // hide the experimental visualization if lab mode is not enabled
   if (!showExperimental && visType.stage === 'experimental') {
     return null;
   }
-  const onClick = () => onVisTypeSelected(visType);
   return (
     <EuiFlexGroup alignItems="center" gutterSize="m" responsive={false}>
       <EuiFlexItem grow={false}>
@@ -236,7 +248,7 @@ const ToolsGroup = ({ visType, onVisTypeSelected, showExperimental }: VisCardPro
         <EuiFlexGroup gutterSize="xs" alignItems="center" responsive={false}>
           <EuiFlexItem grow={false}>
             <EuiLink data-test-subj={`visType-${visType.name}`} onClick={onClick}>
-              {visType.title}
+              {visType.groupTitle || visType.title}
             </EuiLink>
           </EuiFlexItem>
           {visType.stage === 'experimental' && (

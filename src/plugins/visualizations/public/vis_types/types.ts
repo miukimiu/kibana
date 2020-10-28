@@ -47,6 +47,7 @@ export interface VisType<TVisParams = unknown> {
   readonly name: string;
   readonly title: string;
   readonly description?: string;
+  readonly note: string;
   readonly getSupportedTriggers?: () => Array<keyof TriggerContextMapping>;
   readonly isAccessible?: boolean;
   readonly requestHandler?: string | unknown;
@@ -54,7 +55,8 @@ export interface VisType<TVisParams = unknown> {
   readonly icon?: IconType;
   readonly image?: string;
   readonly stage: 'experimental' | 'beta' | 'production';
-  readonly group?: VisGroups.TOOLS | VisGroups.AGGBASED | VisGroups.PROMOTED;
+  readonly group: VisGroups;
+  readonly groupTitle: string;
   readonly requiresSearch: boolean;
   readonly useCustomNoDataScreen: boolean;
   readonly hierarchicalData?: boolean | ((vis: { params: TVisParams }) => boolean);

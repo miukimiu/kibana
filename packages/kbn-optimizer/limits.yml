@@ -14,7 +14,7 @@ pageLoadAssetSize:
   dashboard: 374194
   dashboardEnhanced: 65646
   dashboardMode: 22716
-  data: 1170713
+  data: 1287839
   dataEnhanced: 50420
   devTools: 38637
   discover: 105145
@@ -45,7 +45,7 @@ pageLoadAssetSize:
   kibanaReact: 161921
   kibanaUtils: 198829
   lens: 96624
-  lensOSS: 19341
+  lensOss: 19341
   licenseManagement: 41817
   licensing: 39008
   lists: 183665
@@ -54,7 +54,7 @@ pageLoadAssetSize:
   maps: 183610
   mapsLegacy: 116817
   mapsLegacyLicensing: 20214
-  mapsOSS: 19284
+  mapsOss: 19284
   ml: 82187
   monitoring: 268612
   navigation: 37269
@@ -70,7 +70,7 @@ pageLoadAssetSize:
   searchprofiler: 67080
   security: 189428
   securityOss: 30806
-  securitySolution: 622387
+  securitySolution: 283440
   share: 99061
   snapshotRestore: 79032
   spaces: 387915

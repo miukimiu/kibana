@@ -13,16 +13,8 @@ export function getMapsVisTypeAlias(visualizations, showMapVisualizationTypes) {
   }
 
   const description = i18n.translate('xpack.maps.visTypeAlias.description', {
-    defaultMessage: 'Create all map visualizations using your geo data.',
+    defaultMessage: 'Create and style maps with multiple layers and indices.',
   });
-
-  const legacyMapVisualizationWarning = i18n.translate(
-    'xpack.maps.visTypeAlias.legacyMapVizWarning',
-    {
-      defaultMessage: `Use the Maps app instead of Coordinate Map and Region Map.
-The Maps app offers more functionality and is easier to use.`,
-    }
-  );
 
   return {
     aliasApp: APP_ID,
@@ -31,9 +23,7 @@ The Maps app offers more functionality and is easier to use.`,
     title: i18n.translate('xpack.maps.visTypeAlias.title', {
       defaultMessage: 'Maps',
     }),
-    description: showMapVisualizationTypes
-      ? `${description} ${legacyMapVisualizationWarning}`
-      : description,
+    description: description,
     icon: APP_ICON,
     stage: 'production',
   };

@@ -36,6 +36,7 @@ import type { TypesStart, VisType, VisTypeAlias } from '../vis_types';
 import { UsageCollectionSetup } from '../../../../plugins/usage_collection/public';
 import { EmbeddableStateTransfer } from '../../../embeddable/public';
 import { VISUALIZE_ENABLE_LABS_SETTING } from '../../common/constants';
+import './dialog.scss';
 
 interface TypeSelectionProps {
   isOpen: boolean;
@@ -198,4 +199,6 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
   }
 }
 
-export { NewVisModal };
+// Needed for React.lazy
+// eslint-disable-next-line import/no-default-export
+export { NewVisModal as default };

@@ -70,7 +70,7 @@ class AggBasedSelection extends React.Component<AggBasedSelectionProps, AggBased
           <EuiModalHeaderTitle>
             <FormattedMessage
               id="visualizations.newVisWizard.title"
-              defaultMessage="New Visualization"
+              defaultMessage="New visualization"
             />
           </EuiModalHeaderTitle>
         </EuiModalHeader>
@@ -131,7 +131,7 @@ class AggBasedSelection extends React.Component<AggBasedSelectionProps, AggBased
       });
     }
 
-    return orderBy(entries, ['highlighted', 'type.title'], ['desc', 'asc', 'asc']);
+    return orderBy(entries, ['highlighted', 'type.title'], ['desc', 'asc']);
   }
 
   private renderVisType = (visType: VisTypeListEntry) => {

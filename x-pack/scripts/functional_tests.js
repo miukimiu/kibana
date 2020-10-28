@@ -35,6 +35,7 @@ const onlyNotInCoverageTests = [
   require.resolve('../test/security_api_integration/session_idle.config.ts'),
   require.resolve('../test/security_api_integration/session_lifespan.config.ts'),
   require.resolve('../test/security_api_integration/login_selector.config.ts'),
+  require.resolve('../test/security_api_integration/audit.config.ts'),
   require.resolve('../test/token_api_integration/config.js'),
   require.resolve('../test/oidc_api_integration/config.ts'),
   require.resolve('../test/oidc_api_integration/implicit_flow.config.ts'),
@@ -61,6 +62,7 @@ const onlyNotInCoverageTests = [
   require.resolve('../test/reporting_api_integration/reporting_without_security.config.ts'),
   require.resolve('../test/security_solution_endpoint_api_int/config.ts'),
   require.resolve('../test/ingest_manager_api_integration/config.ts'),
+  require.resolve('../test/functional_vis_wizard/config.ts'),
 ];
 
 require('../../src/setup_node_env');

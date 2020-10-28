@@ -1,8 +1,10 @@
 {
-    "id": "lensOSS",
-    "version": "kibana",
-    "ui": true,
-    "requiredPlugins": [
-      "visualizations"
-    ]
-  }
+  "id": "lensOss",
+  "version": "kibana",
+  "ui": true,
+  "server": true,
+  "requiredPlugins": [
+    "visualizations"
+  ],
+  "extraPublicDirs": ["common/constants"]
+}
