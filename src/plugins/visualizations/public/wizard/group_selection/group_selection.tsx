@@ -194,26 +194,36 @@ const VisGroup = ({ visType, onVisTypeSelected }: VisCardProps) => {
   }, [onVisTypeSelected, visType]);
   const shouldDisplayBadge = isVisTypeAlias(visType) && visType.disabled;
   return (
-    <EuiFlexItem>
+    <EuiFlexItem className="visNewVisDialog__groupsCardWrapper">
+      <EuiLink
+        href="https://www.elastic.co/"
+        target="_blank"
+        color="text"
+        className="visNewVisDialog__groupsCardLink"
+      >
+        <EuiBetaBadge
+          className="visNewVisDialog__groupsCardBetaBadge"
+          label={
+            shouldDisplayBadge
+              ? i18n.translate('visualizations.newVisWizard.basicTitle', {
+                  defaultMessage: 'Basic',
+                })
+              : undefined
+          }
+          tooltipContent={
+            shouldDisplayBadge
+              ? i18n.translate('visualizations.newVisWizard.basicLicenseRequired', {
+                  defaultMessage: 'Try Lens for free with Elastic. Learn more.',
+                })
+              : undefined
+          }
+        />
+      </EuiLink>
       <EuiCard
         titleSize="xs"
         title={<span data-test-subj="visTypeTitle">{visType.groupTitle || visType.title}</span>}
         onClick={onClick}
         isDisabled={shouldDisplayBadge}
-        betaBadgeLabel={
-          shouldDisplayBadge
-            ? i18n.translate('visualizations.newVisWizard.basicTitle', {
-                defaultMessage: 'Basic',
-              })
-            : undefined
-        }
-        betaBadgeTooltipContent={
-          shouldDisplayBadge
-            ? i18n.translate('visualizations.newVisWizard.basicLicenseRequired', {
-                defaultMessage: 'This feature requires a Basic License',
-              })
-            : undefined
-        }
         data-test-subj={`visType-${visType.name}`}
         data-vis-stage={!('aliasPath' in visType) ? visType.stage : 'alias'}
         aria-label={`visType-${visType.name}`}
